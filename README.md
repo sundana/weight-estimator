@@ -16,7 +16,45 @@ experiments/            experiment entry points (Exp 1-3)
 paper/                  notes and drafts
 ```
 
+## Setup
+
+The package is **not** pip-installed by default. Either install it editable:
+
+```powershell
+pip install -e .
+```
+
+or set the import path once per shell (no install needed):
+
+```powershell
+$env:PYTHONPATH = "$PWD\src"
+```
+
+Tests require only `numpy` and `pytest`.
+
+## Run
+
+Tests:
+
+```powershell
+$env:PYTHONPATH = "$PWD\src"; python -m pytest tests -q
+```
+
+Experiments (`experiments/exp1_alignment.py`, `exp2_decomposition.py`,
+`exp3_benchmark.py`):
+
+```powershell
+python -m experiments.exp1_alignment --config configs/tabular_default.yaml
+```
+
+Configs in `configs/` feed the experiments (regime knobs, loss family, seeds); keep
+the knob names in sync between `configs/*.yaml` and `src/distractor_gym/core.py`
+(`RegimeConfig`). Deep-baseline runs (MBPO/VaGraM, then DreamerV3/TD-MPC2) are
+configured in `configs/phase1_mbpo_vagram.yaml` and require the optional `bench`
+dependencies.
+
 ## Status
 
-Phase 0 (scaffold). Tabular and continuous Distractor-Gym suites, weighted loss families,
-and the diagnostics API are stubbed and documented in `src/distractor_gym/`.
+Phase 0 (scaffold). The diagnostics API in `src/distractor_gym/diagnostics.py` is
+implemented and smoke-tested; tabular/continuous env suites, weighted loss families,
+and the experiment entry points are stubbed (`NotImplementedError`) pending Phase 1a+.
