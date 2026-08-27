@@ -1,0 +1,13 @@
+regime:
+  d_c: 2
+  d_d: 8
+  distractor_class: nonlinear
+  reward_sparsity: 0.1
+  goal_radius: 0.5
+  transition_noise: 0.05
+  seed: 0
+
+base_task: dmc_reach
+loss_family: vagram
+n_seeds: 10
+n_steps: 500000

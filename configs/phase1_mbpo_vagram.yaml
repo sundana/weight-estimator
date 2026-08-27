@@ -1,0 +1,29 @@
+# Phase 1 benchmark: MBPO (MLE) vs MBPO+VaGraM vs native VaGraM on Distractor-Gym.
+# Matches VaGraM's native regime (small model capacity + distractor dims).
+
+algorithm: mbpo
+baselines:
+  - name: mbpo_mle
+    model_loss: mle
+  - name: mbpo_vagram
+    model_loss: vagram
+  - name: vagram
+    model_loss: vagram
+
+regime:
+  d_c: 2
+  d_d: 16
+  distractor_class: nonlinear
+  reward_sparsity: 1.0
+  transition_noise: 0.0
+  seed: 0
+
+model:
+  num_layers: 3
+  hid_size: 64
+
+overrides:
+  num_steps: 500000
+  model_batch_size: 1024
+
+n_seeds: 10

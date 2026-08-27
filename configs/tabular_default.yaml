@@ -1,0 +1,21 @@
+regime:
+  d_c: 2
+  d_d: 0
+  distractor_class: linear
+  reward_sparsity: 1.0
+  transition_noise: 0.0
+  seed: 0
+
+grid_c:
+  low: -3.0
+  high: 3.0
+  n: 21
+
+grid_d:
+  low: -3.0
+  high: 3.0
+  n: 7
+
+gamma: 0.99
+loss_family: mle
+n_seeds: 10
