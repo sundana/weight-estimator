@@ -1,0 +1,21 @@
+gamma: 0.99
+n_data: 8000
+alpha: 0.1
+tau: 0.5
+target_center: 0.0
+target_gain: 2.0
+coverage_gain: 1.5
+n_seeds: 3
+loss_families: [vagram, vaml1]
+
+regime:
+  d_c: 1
+  d_d: 0
+  distractor_class: nonlinear
+  reward_sparsity: 1.0
+  transition_noise: 0.1
+  seed: 0
+
+sweep:
+  d_d: [0, 1, 2]
+  goal_radius: [null, 0.3]
