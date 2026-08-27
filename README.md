@@ -55,6 +55,9 @@ dependencies.
 
 ## Status
 
-Phase 0 (scaffold). The diagnostics API in `src/distractor_gym/diagnostics.py` is
-implemented and smoke-tested; tabular/continuous env suites, weighted loss families,
-and the experiment entry points are stubbed (`NotImplementedError`) pending Phase 1a+.
+Phase 1a/1b. The tabular Distractor-Gym suite, exact policy-gradient machinery,
+weighted loss families, and the diagnostics API are implemented and tested. The
+gradient-alignment (Exp 1), decomposition/ablation (Exp 2) and crossover (Exp 1b)
+experiments run on the tabular suite; theory notes are in `paper/notes/theory.md`.
+The continuous envs, deep baselines (Phase 1c/2), and remaining stubs are planned
+work (`NotImplementedError`).
