@@ -25,7 +25,7 @@ def test_mle_weight_is_ones():
     s_prime = np.ones((4, 2))
     V = np.zeros(4)
     grad_V = np.ones((4, 2))
-    w = weight(LossFamily.MLE, s, s_prime, V, grad_V)
+    w = weight(LossFamily.MLE, V_sp=V, grad_V_sp=grad_V)
     assert np.allclose(w, np.ones(4))
 
 
