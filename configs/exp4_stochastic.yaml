@@ -1,0 +1,13 @@
+base_task: pendulum
+distractor_class: stochastic
+n_data: 20000
+val_frac: 0.2
+epochs: 100
+batch_size: 512
+lr: 0.001
+n_seeds: 2
+lam: 0.5
+
+d_d_list: [8, 16]
+hidden_list: [8, 16]
+loss_kinds: [mle, vagram]
