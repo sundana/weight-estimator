@@ -55,9 +55,10 @@ dependencies.
 
 ## Status
 
-Phase 1a/1b. The tabular Distractor-Gym suite, exact policy-gradient machinery,
-weighted loss families, and the diagnostics API are implemented and tested. The
-gradient-alignment (Exp 1), decomposition/ablation (Exp 2) and crossover (Exp 1b)
-experiments run on the tabular suite; theory notes are in `paper/notes/theory.md`.
-The continuous envs, deep baselines (Phase 1c/2), and remaining stubs are planned
-work (`NotImplementedError`).
+Phase 1a/1b/1c. The tabular and continuous Distractor-Gym suites, exact
+policy-gradient machinery, weighted loss families, and the diagnostics API are
+implemented and tested. The gradient-alignment (Exp 1), decomposition/ablation
+(Exp 2), crossover (Exp 1b), and continuous neural model-learning (Exp 4)
+experiments run; theory notes are in `paper/notes/theory.md`. The deep-baseline
+benchmark (MBPO/VaGraM/DreamerV3/TD-MPC2, Phase 1c/2/3) needs `mbrl-lib` +
+`dm_control` provisioning and remains planned work (`NotImplementedError`).

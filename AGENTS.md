@@ -1,9 +1,10 @@
 # AGENTS.md
 
 Research scaffold for the paper *"When and why does value-aware model learning fail?"*
-Full plan: `RESEARCH_PLAN.md`. Current status: Phase 1a/1b — tabular suite, weighted
-losses, exact policy-gradient machinery, and theory notes are implemented; the
-continuous envs, deep baselines, and remaining stubs are planned work.
+Full plan: `RESEARCH_PLAN.md`. Current status: Phase 1a/1b/1c — tabular and continuous
+suites, weighted losses, exact policy-gradient machinery, neural model-learning
+diagnostics, and theory notes are implemented; the deep baselines and remaining stubs
+are planned work.
 
 ## Run / verify
 
@@ -19,8 +20,8 @@ continuous envs, deep baselines, and remaining stubs are planned work.
   `tabular.py`/`continuous.py` (env suites), `agents.py` (exact tabular policy
   gradient, model fitting, rollouts), `losses.py` (weighted loss family),
   `diagnostics.py` (public diagnostics API, smoke-tested)
-- `experiments/` — Exp 1-3 + 1b entry points; `configs/*.yaml` feed them (keep knobs
-  in sync); `paper/notes/theory.md` states Lemma 1, Theorems 1-3
+- `experiments/` — Exp 1-3 + 1b + 4 entry points; `configs/*.yaml` feed them (keep
+  knobs in sync); `paper/notes/theory.md` states Lemma 1, Theorems 1-3
 - `paper/notes/outline.md` — paper outline + open items
 
 ## Conventions
@@ -29,6 +30,8 @@ continuous envs, deep baselines, and remaining stubs are planned work.
   not bugs — do not implement them unless the corresponding phase is in scope.
 - Tabular experiments are ground-truth labs: verify exact quantities against
   finite-difference checks before trusting them (`tests/test_agents.py`).
+- `exp4_continuous` needs torch; the deep benchmark needs `mbrl-lib` + `dm_control`,
+  which are not installed (mbrl-lib pins old `gym` — provisioning is an open item).
 - Docstrings state the math/API contract; no inline comments in source.
 
 ## Commits
