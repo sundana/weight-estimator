@@ -24,40 +24,65 @@ class LossFamily(str, Enum):
 
 def weight(
     family: LossFamily,
-    s: np.ndarray,
-    s_prime: np.ndarray,
-    V: np.ndarray,
-    grad_V: np.ndarray,
-    weight_fn=None,
+    *,
+    V_s: np.ndarray | None = None,
+    V_sp: np.ndarray | None = None,
+    grad_V_sp: np.ndarray | None = None,
+    weight_fn: np.ndarray | None = None,
+    tau: float = 1.0,
 ) -> np.ndarray:
     """Compute the per-transition weight ``w(s, a, s')``.
 
-    Args:
-        family: loss family selecting the weighting rule.
-        s: batch of current states.
-        s_prime: batch of true next states.
-        V: batch of value estimates ``V(s')``.
-        grad_V: batch of value gradients ``grad_s V(s')``.
-        weight_fn: optional decision-aligned weight (e.g. model-Bellman inconsistency).
+    Inputs are batches over transitions; at least one value input is required so the
+    batch size can be inferred. Required inputs per family:
+
+    - MLE: none (returns all-ones of the inferred batch size).
+    - VAML1: ``V_s`` and ``V_sp``; returns ``|V(s') - V(s)|``.
+    - VAGRAM: ``grad_V_sp``; returns the L2 norm of the value gradient at ``s'``.
+    - LAMBERT: ``V_sp``; exponential tilt toward high-value outcomes,
+      ``exp((V(s') - max V(s')) / tau)``.
+    - DECISION_ALIGNED: ``weight_fn`` (e.g. per-sample Bellman residual).
 
     Returns:
-        Batch of non-negative weights; MLE returns all-ones.
+        Batch of non-negative weights.
     """
+    n = _infer_batch_size(V_s, V_sp, grad_V_sp, weight_fn)
     if family == LossFamily.MLE:
-        return np.ones(s.shape[0])
+        return np.ones(n)
     if family == LossFamily.VAML1:
-        raise NotImplementedError
+        if V_s is None or V_sp is None:
+            raise ValueError("VAML1 requires V_s and V_sp")
+        return np.abs(V_sp - V_s)
     if family == LossFamily.VAGRAM:
-        raise NotImplementedError
+        if grad_V_sp is None:
+            raise ValueError("VAGRAM requires grad_V_sp")
+        return np.linalg.norm(grad_V_sp, axis=-1)
     if family == LossFamily.LAMBERT:
-        raise NotImplementedError
+        if V_sp is None:
+            raise ValueError("LAMBERT requires V_sp")
+        return np.exp((V_sp - np.max(V_sp)) / tau)
     if family == LossFamily.DECISION_ALIGNED:
         if weight_fn is None:
             raise ValueError("decision-aligned weighting requires weight_fn")
-        raise NotImplementedError
+        return np.asarray(weight_fn, dtype=float)
     raise ValueError(f"unknown loss family: {family}")
 
 
-def weighted_loss(family: LossFamily, model, batch: dict) -> float:
-    """Evaluate the weighted model-learning loss for a model and transition batch."""
-    raise NotImplementedError
+def _infer_batch_size(*arrays) -> int:
+    for arr in arrays:
+        if arr is not None:
+            return np.asarray(arr).shape[0]
+    raise ValueError("at least one input array is required to infer batch size")
+
+
+def weighted_loss(
+    model, batch: np.ndarray, weights: np.ndarray, eps: float = 1e-12
+) -> float:
+    """Weighted negative log-likelihood over a transition batch.
+
+    ``model`` maps ``(s, a)`` to a probability vector over ``s'``
+    (shape ``(n, n_states)``); ``batch`` is an ``(n, 3)`` array of ``(s, a, s')``.
+    """
+    probs = model(batch[:, 0], batch[:, 1])
+    p = probs[np.arange(len(batch)), batch[:, 2]]
+    return float(np.mean(weights * -np.log(np.clip(p, eps, 1.0))))
