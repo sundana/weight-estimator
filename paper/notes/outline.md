@@ -1,5 +1,7 @@
 # Paper Outline (RESEARCH_PLAN.md Sec. 7)
 
+Draft v1 written: `paper/draft_v1.md` (Phase 1d).
+
 1. Introduction — objective mismatch, value-aware learning, the missing diagnostic.
 2. Background & Related Work — Lambert; VAML/IterVAML; VaGraM; CVAML; MOBILE; decision-aware taxonomy.
 3. Theory — Lemma 1 (factorization), Theorem 1 (crossover), Theorem 2 (ESS).

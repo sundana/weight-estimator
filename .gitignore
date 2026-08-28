@@ -19,3 +19,4 @@ outputs/
 .mypy_cache/
 .idea/
 .vscode/
+.venv-bench
