@@ -15,15 +15,15 @@ objective mismatch problem (Lambert et al., 2020) is that the model's likelihood
 not correlate with its ability to guide the policy. Value-aware model learning
 (VaGraM; Voelcker et al., 2022) reweights the model loss by the value function, but
 is empirically known to sometimes underperform MLE. We isolate *when and why* this
-happens. We contribute (i) a theory of the value-aware weight estimator `w` -- a
+happens. We contribute (i) a theory of the value-aware weight estimator $w$ -- a
 prediction-risk dominance result showing weighting can never improve the
-Bellman-target prediction (it only adds a variance penalty `sigma_w^2 E[V^2]/n` and a
+Bellman-target prediction (it only adds a variance penalty $\sigma_w^2 E[V^2]/n$ and a
 bias term), and a decision-risk crossover criterion showing weighting helps exactly
 when the value-relevance signal exceeds the weight-noise penalty; (ii) a synthetic
 benchmark, Distractor-Gym, that provably produces the failure regimes (spurious
 state dimensions and sparse rewards); and (iii) two quantitative diagnostics --
 policy-gradient alignment (cosine between true and model-induced gradients) and the
-`|delta_TD| ~ ||grad V|| * eps_model` decomposition -- validated in a ground-truth
+$|\delta_TD| ~ ||grad V|| * eps_model$ decomposition -- validated in a ground-truth
 tabular suite and transferred to a continuous neural setting. We find that MLE
 misguides the policy exactly when data coverage is concentrated where the value
 changes (alignment near zero or negative), that value-aware weighting restores

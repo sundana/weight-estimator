@@ -20,3 +20,12 @@ outputs/
 .idea/
 .vscode/
 .venv-bench
+
+
+# Latex build
+*.aux
+*.fdb_latexmk
+*.fls
+*.out
+*.synctex.gz
+paper/*.pdf
