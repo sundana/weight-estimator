@@ -29,3 +29,6 @@ outputs/
 *.out
 *.synctex.gz
 paper/*.pdf
+
+# replicate paper
+replicate/*/paper
