@@ -297,3 +297,4 @@ breaks down, and where.
 - Voelcker et al. **Calibrated Value-Aware Model Learning with (Probabilistic/Stochastic) Environment Models (CVAML).** 2025.
 - ROMI. **Model-based Offline RL via Robust Value-Aware Model Learning with Implicitly Differentiable Adaptive Weighting.** ICLR 2026.
 - Wei, Lambert, McDonald. **A Unified View on Solving Objective Mismatch in Model-Based Reinforcement Learning.** 2024.
+https://github.com/Agentic-Intelligence-Lab/ROMBRL

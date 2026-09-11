@@ -14,8 +14,11 @@ def run_pearson_experiment(datasets, M=100, epochs=FULL_EPOCHS, num_trials=REWAR
                            render=False):
     """For each dataset train M fresh P models, compute validation LL and mean
     episode reward per model, and report the Pearson correlation rho(LL, reward).
-    This is exactly the quantity that quantifies objective mismatch in Fig 3."""
+    This is exactly the quantity that quantifies objective mismatch in Fig 3.
+    Returns {name: {"ll": ndarray, "reward": ndarray, "rho": float, "mean_ll":
+    float, "mean_reward": float, "M": int}} for persistence and plotting."""
     env = make_env("cartpole", render=render)
+    results = {}
     for name, (s, a, sn) in datasets.items():
         tr, av, tn, vr, va, vn = split_dataset(s, a, sn)
         lls, rewards = [], []
@@ -32,5 +35,14 @@ def run_pearson_experiment(datasets, M=100, epochs=FULL_EPOCHS, num_trials=REWAR
                          if len(lls) >= 2 else "---")},
                 refresh=True)
         rho = np.corrcoef(lls, rewards)[0, 1] if len(lls) >= 2 else float("nan")
+        results[name] = {
+            "ll": np.asarray(lls, dtype=np.float64),
+            "reward": np.asarray(rewards, dtype=np.float64),
+            "rho": float(rho),
+            "mean_ll": float(np.mean(lls)),
+            "mean_reward": float(np.mean(rewards)),
+            "M": int(M),
+        }
         print(f"[{name}] M={M} | rho(LL, reward) = {rho:.3f}")
         print(f"    mean LL = {np.mean(lls):.3f} | mean reward = {np.mean(rewards):.1f}")
+    return results
