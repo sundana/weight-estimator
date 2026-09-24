@@ -106,3 +106,56 @@ def weight_signal_to_noise(weighted_losses: np.ndarray, w: np.ndarray) -> float:
     if var == 0.0:
         return float("inf")
     return mean**2 / var
+
+
+@dataclass
+class CrossoverResult:
+    """Theorem-3 decision-risk crossover terms for ``SNR_dec``."""
+
+    signal: float
+    penalty: float
+    snr_dec: float
+    threshold: float
+    predicts_value_aware: bool
+
+
+def decision_crossover_snr(
+    grad_V: np.ndarray, next_state: np.ndarray, w: np.ndarray, threshold: float = 1.0
+) -> CrossoverResult:
+    """Theorem-3 diagnostic: does value-aware weighting beat MLE on decision risk?
+
+    Implements the criterion derived from Theorem 3: value-aware weighting improves the
+    decision risk iff
+
+    ``n * (gbar . Cov(w, Y))^2 > ||gbar||^2 * sigma_w^2 * Var(||Y||)``,
+
+    i.e. iff the value-relevance signal exceeds the weight-noise penalty. Here
+    ``grad_V`` is ``grad_s V(s')`` per transition (shape ``(n, d)``), ``next_state`` the
+    next-state coordinates ``Y`` (shape ``(n, d)``), and ``w`` the mean-normalizable
+    per-transition weight (shape ``(n,)``). Returns the signal, penalty, their ratio
+    ``SNR_dec``, the threshold (default 1), and the predicted winner.
+
+    Unlike the Lambert-style ``SNR_w`` proxy, this statistic is derived directly from the
+    decision-risk decomposition (RESEARCH_PLAN.md Sec. 2.3; paper/notes/theory.md).
+    """
+    g = np.asarray(grad_V, dtype=float).reshape(len(w), -1)
+    Y = np.asarray(next_state, dtype=float).reshape(len(w), -1)
+    w = np.asarray(w, dtype=float)
+    if len(w) == 0:
+        raise ValueError("empty input")
+    gbar = g.mean(axis=0)
+    wc = w - w.mean()
+    Yc = Y - Y.mean(axis=0)
+    cov_wY = (wc[:, None] * Yc).mean(axis=0)
+    sigma_w2 = float(np.var(w))
+    signal = float((gbar @ cov_wY) ** 2)
+    var_normY = float(np.var(np.linalg.norm(Y, axis=1)))
+    penalty = float((gbar @ gbar) * sigma_w2 * var_normY / len(w))
+    snr = float("inf") if penalty == 0.0 else signal / penalty
+    return CrossoverResult(
+        signal=signal,
+        penalty=penalty,
+        snr_dec=snr,
+        threshold=threshold,
+        predicts_value_aware=bool(snr > threshold),
+    )

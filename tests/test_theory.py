@@ -8,7 +8,10 @@ draft used the numerator-only ``sigma_w^2 E[V^2] / n``; the two are far apart wh
 import numpy as np
 import pytest
 
-from distractor_gym.diagnostics import weight_signal_to_noise
+from distractor_gym.diagnostics import (
+    decision_crossover_snr,
+    weight_signal_to_noise,
+)
 from distractor_gym.losses import LossFamily, weight
 
 
@@ -51,3 +54,29 @@ def test_weight_signal_to_noise_uses_weighted_losses():
 def test_decision_aligned_weight_is_passthrough():
     fn = np.linspace(0.1, 1.0, 10)
     assert np.allclose(weight(LossFamily.DECISION_ALIGNED, weight_fn=fn), fn)
+
+
+def test_decision_crossover_scale_invariance():
+    rng = np.random.default_rng(0)
+    n = 2000
+    grad = np.tile(np.array([1.0, 0.0]), (n, 1))
+    Y = rng.normal(size=(n, 2))
+    w = np.abs(rng.normal(size=n))
+    a = decision_crossover_snr(grad, Y, w)
+    b = decision_crossover_snr(grad, Y, 5.0 * w)
+    assert b.snr_dec == pytest.approx(a.snr_dec, rel=1e-9)
+    assert a.threshold == 1.0
+
+
+def test_decision_crossover_prefers_value_aligned_weight():
+    rng = np.random.default_rng(0)
+    n = 5000
+    grad = np.tile(np.array([1.0, 0.0]), (n, 1))
+    Y = rng.normal(size=(n, 2))
+    aligned = 1.0 + 2.0 * Y[:, 0]
+    independent = np.abs(rng.normal(size=n))
+    a = decision_crossover_snr(grad, Y, aligned)
+    b = decision_crossover_snr(grad, Y, independent)
+    assert a.signal > b.signal
+    assert a.predicts_value_aware
+

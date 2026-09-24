@@ -22,7 +22,11 @@ from distractor_gym.agents import (
     policy_gradient,
     sample_transitions,
 )
-from distractor_gym.diagnostics import gradient_alignment, weight_signal_to_noise
+from distractor_gym.diagnostics import (
+    decision_crossover_snr,
+    gradient_alignment,
+    weight_signal_to_noise,
+)
 from distractor_gym.losses import LossFamily, weight
 
 from .common import (
@@ -71,6 +75,7 @@ def regime_row(regime: dict, cfg: dict, rng: np.random.Generator) -> dict:
     delta_mle = np.abs(V_true[data[:, 2]] - np.tensordot(P_mle, V_true, axes=([2], [0]))[data[:, 0], data[:, 1]])
 
     row = {"r_b_mle": r_b_mle, "align_mle": align_mle}
+    Y = env.coordinates_batch(data[:, 2])
     for fam in families:
         w_est = weight(fam, V_s=V_hat[data[:, 0]], V_sp=V_hat[data[:, 2]], grad_V_sp=grad_hat[data[:, 2]], tau=tau)
         w_ora = weight(fam, V_s=V_true[data[:, 0]], V_sp=V_true[data[:, 2]], grad_V_sp=grad_true[data[:, 2]], tau=tau)
@@ -79,11 +84,14 @@ def regime_row(regime: dict, cfg: dict, rng: np.random.Generator) -> dict:
         g_est = policy_gradient(env, P_est, policy, gamma).ravel()
         g_ora = policy_gradient(env, P_ora, policy, gamma).ravel()
         ess = float(np.sum(w_est) ** 2 / max(np.sum(w_est**2), 1e-12))
+        crossover = decision_crossover_snr(grad_true[data[:, 2]], Y, w_est)
         row[f"r_b_{fam.value}_est"] = bellman_risk(env, P_est, V_true, data)
         row[f"r_b_{fam.value}_ora"] = bellman_risk(env, P_ora, V_true, data)
         row[f"align_{fam.value}_est"] = float(gradient_alignment(g_true, g_est))
         row[f"align_{fam.value}_ora"] = float(gradient_alignment(g_true, g_ora))
         row[f"snr_{fam.value}"] = weight_signal_to_noise(w_est * nll, w_est)
+        row[f"snr_dec_{fam.value}"] = crossover.snr_dec
+        row[f"predict_va_{fam.value}"] = float(crossover.predicts_value_aware)
         row[f"ess_{fam.value}"] = ess
         row[f"varw_{fam.value}"] = float(np.var(w_est))
         row[f"corr_w_vmse_{fam.value}"] = float(np.corrcoef(w_est, delta_mle)[0, 1])
@@ -124,8 +132,14 @@ def _plot(rows: list[dict], out_dir: str) -> None:
         import matplotlib.pyplot as plt
     except ImportError:
         return
-    fams = [k.split("_")[1] for k in rows[0] if k.startswith("snr_")]
-    fig, axes = plt.subplots(2, len(fams), figsize=(5 * len(fams), 6.6), squeeze=False)
+    fams = sorted(
+        {
+            k[len("snr_dec_") :]
+            for k in rows[0]
+            if k.startswith("snr_dec_") and not k.endswith("_std")
+        }
+    )
+    fig, axes = plt.subplots(2, max(len(fams), 1), figsize=(5 * max(len(fams), 1), 6.6), squeeze=False)
     for fi, fam in enumerate(fams):
         x = [r[f"snr_{fam}"] for r in rows]
         ax = axes[0][fi]
