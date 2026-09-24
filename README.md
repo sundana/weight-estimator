@@ -55,10 +55,19 @@ dependencies.
 
 ## Status
 
-Phase 1a/1b/1c. The tabular and continuous Distractor-Gym suites, exact
-policy-gradient machinery, weighted loss families, and the diagnostics API are
-implemented and tested. The gradient-alignment (Exp 1), decomposition/ablation
-(Exp 2), crossover (Exp 1b), and continuous neural model-learning (Exp 4)
-experiments run; theory notes are in `paper/notes/theory.md`. The deep-baseline
-benchmark (MBPO/VaGraM/DreamerV3/TD-MPC2, Phase 1c/2/3) needs `mbrl-lib` +
-`dm_control` provisioning and remains planned work (`NotImplementedError`).
+Phase 1a/1b/1c. The tabular Distractor-Gym suite, exact policy-gradient machinery,
+weighted loss families, and the diagnostics API are implemented and tested. The
+distractor family (`linear`/`nonlinear`/`stochastic`) is functional, coverage is drawn
+i.i.d. (`uniform`/`goal`), and the transition model can be the uncapacitated empirical
+table or a **reduced-rank feature-budget** model (`model_kind: feature`,
+`capacity`/`model_noise`). Experiments write a `manifest.json` (git SHA + config +
+versions) next to their results.
+
+The revised tabular results are in `runs/` (10 seeds each): `exp1`/`exp2` (uncapacitated
+ground-truth), `exp1_capacity`/`exp2_capacity` (capacity-limited + stochastic
+distractors), and `exp1b`/`exp1b_capacity` (crossover). Corrected theory and results are
+written up in `paper/draft_v2.md` and `paper/notes/theory.md`. The continuous neural
+experiment (Exp 4) needs `torch` (not installed) and is withdrawn pending a coordinate
+scaling fix. The deep-baseline benchmark (MBPO/VaGraM/DreamerV3/TD-MPC2, Phase 1c/2/3)
+needs `mbrl-lib` + `dm_control` provisioning and remains planned work
+(`NotImplementedError`).

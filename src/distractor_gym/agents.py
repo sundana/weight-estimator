@@ -111,7 +111,7 @@ def collect_transitions(
     behavior_probs: np.ndarray,
     rng: np.random.Generator,
 ) -> np.ndarray:
-    """Collect an ``(n, 3)`` transition batch under a fixed behavior policy."""
+    """Collect an ``(n, 3)`` transition batch by rolling out one behavior trajectory."""
     out = np.empty((n_steps, 3), dtype=np.int64)
     s = int(rng.choice(env.S))
     for t in range(n_steps):
@@ -120,6 +120,90 @@ def collect_transitions(
         out[t] = (s, a, sp)
         s = sp
     return out
+
+
+def sample_transitions(
+    env: TabularDistractorEnv,
+    n: int,
+    behavior_probs: np.ndarray,
+    rng: np.random.Generator,
+    state_probs: np.ndarray | None = None,
+) -> np.ndarray:
+    """Draw an i.i.d. ``(n, 3)`` batch of ``(s, a, s')`` transitions.
+
+    Unlike ``collect_transitions`` (a single random walk), this samples states
+    independently from ``state_probs`` (uniform over states by default), so the
+    coverage knob controls the state distribution exactly rather than through the
+    mixing of one trajectory.
+    """
+    if state_probs is None:
+        state_probs = np.full(env.S, 1.0 / env.S)
+    s = rng.choice(env.S, size=n, p=state_probs)
+    a = np.array([rng.choice(env.n_a, p=behavior_probs[si]) for si in s], dtype=np.int64)
+    u = rng.random(n)
+    cum = np.cumsum(env.transition[s, a], axis=1)
+    sp = (cum < u[:, None]).sum(axis=1)
+    sp = np.minimum(sp, env.S - 1)
+    return np.stack([s, a, sp], axis=1).astype(np.int64)
+
+
+def fit_feature_model(
+    env: TabularDistractorEnv,
+    data: np.ndarray,
+    weights: np.ndarray | None = None,
+    capacity: int = 1,
+    model_noise: float = 0.5,
+    ridge: float = 1e-6,
+) -> np.ndarray:
+    """Capacity-limited (reduced-rank) transition model fit by weighted least squares.
+
+    Fits ``mu(s, a) = phi(s, a) C`` with ``rank(C) <= capacity`` to the observed
+    next-state coordinates, where ``phi = [s_coords, a, 1]``. The restored transition
+    tensor is a fixed-bandwidth Gaussian over the grid coordinates,
+    ``P_hat(s' | s, a) ~ exp(-||coord(s') - mu(s, a)||^2 / (2 model_noise^2))``.
+
+    A small ``capacity`` relative to the state dimension forces the model to spend
+    its representational budget on the highest-variance state directions (the
+    distractors), degrading control-relevant predictions -- the tabular analogue
+    of a finite-capacity neural model.
+    """
+    s, a, sp = data[:, 0], data[:, 1], data[:, 2]
+    D = 1 + env.d_d
+    phi = np.column_stack([env.coordinates_batch(s), a.astype(float), np.ones(len(s))])
+    Y = env.coordinates_batch(sp)
+    if weights is None:
+        w = np.ones(len(data))
+    else:
+        w = np.asarray(weights, dtype=float)
+    sw = np.sqrt(np.maximum(w, 0.0))[:, None]
+    Xw = sw * phi
+    Yw = sw * Y
+    p = Xw.shape[1]
+    G = Xw.T @ Xw + ridge * np.eye(p)
+    H = Xw.T @ Yw
+    evals, evecs = np.linalg.eigh(G)
+    Ginv_sqrt = (evecs / np.sqrt(evals)) @ evecs.T
+    M = Ginv_sqrt @ H
+    U, S, Vt = np.linalg.svd(M, full_matrices=False)
+    r = int(max(1, min(capacity, len(S))))
+    C = Ginv_sqrt @ (U[:, :r] * S[:r]) @ Vt[:r]
+
+    idx = np.arange(env.S)
+    coords = env.coordinates_batch(idx)
+    phi_all = np.zeros((env.S * env.n_a, p))
+    act = np.repeat(env.ACTIONS.astype(float), env.S)
+    for a_idx in range(env.n_a):
+        block = slice(a_idx * env.S, (a_idx + 1) * env.S)
+        phi_all[block, :D] = coords
+        phi_all[block, D] = env.ACTIONS[a_idx]
+        phi_all[block, D + 1] = 1.0
+    mu_all = phi_all @ C
+    dist2 = ((mu_all[:, None, :] - coords[None, :, :]) ** 2).sum(axis=2)
+    logits = -dist2 / (2.0 * model_noise**2)
+    logits = logits - logits.max(axis=1, keepdims=True)
+    P = np.exp(logits)
+    P = P / P.sum(axis=1, keepdims=True)
+    return P.reshape(env.S, env.n_a, env.S)
 
 
 def uniform_behavior(env: TabularDistractorEnv) -> np.ndarray:

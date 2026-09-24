@@ -5,9 +5,10 @@ computable, enabling exact validation of the weight-estimator theory and the
 ``|delta_TD| ~ ||grad V|| * eps_model`` decomposition (RESEARCH_PLAN.md Sec. 2, 5).
 
 State ``s = (s_c, s_d)``: ``s_c`` is a 1D control position on ``grid_c`` and ``s_d``
-is a ``d_d``-dimensional distractor block on ``grid_d``. Distractor dynamics are a
-deterministic chaotic (logistic) map per dimension; reward depends only on ``s_c``,
-so ``grad_{s_d} V = 0`` by construction.
+is a ``d_d``-dimensional distractor block on ``grid_d``. Distractor dynamics follow
+the configured ``RegimeConfig.distractor_class`` (deterministic logistic map by
+default, but also linear coupling and stochastic random walks); reward depends only
+on ``s_c``, so ``grad_{s_d} V = 0`` by construction.
 """
 
 from __future__ import annotations
@@ -16,7 +17,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from .core import RegimeConfig
+from .core import DistractorClass, RegimeConfig
 
 
 @dataclass
@@ -69,9 +70,32 @@ class TabularDistractorEnv:
         self.S = self.n_c * self.n_di
         self.n_a = len(self.ACTIONS)
         self.rng = np.random.default_rng(config.seed)
+        self._distractor_matrix = self._build_distractor_matrix()
         self.transition = self._build_transition()
         self.rewards = self._build_rewards()
         self.features = self._build_features()
+
+    def _build_distractor_matrix(self) -> np.ndarray:
+        """Coupling matrix for linear/nonlinear distractor dynamics."""
+        if self.d_d == 0:
+            return np.zeros((0, 0))
+        rng = np.random.default_rng(self.config.seed + 999)
+        return rng.normal(size=(self.d_d, self.d_d)) / np.sqrt(self.d_d)
+
+    def _distractor_next_coords(self, s_d: np.ndarray) -> np.ndarray:
+        """Continuous next distractor coordinates for one transition."""
+        if self.config.distractor_class == DistractorClass.LINEAR:
+            return s_d @ self._distractor_matrix.T
+        if self.config.distractor_class == DistractorClass.NONLINEAR:
+            span = self.grid_d.high - self.grid_d.low
+            p = (s_d - self.grid_d.low) / span
+            p = 4.0 * p * (1.0 - p)
+            return self.grid_d.low + p * span
+        raise ValueError(f"no deterministic next coords for class {self.config.distractor_class}")
+
+    def _quantize_distractors(self, coords: np.ndarray) -> int:
+        idx = [int(np.argmin(np.abs(self.grid_d.points - c))) for c in coords]
+        return int(np.ravel_multi_index(tuple(idx), [self.n_d] * self.d_d))
 
     def _unpack(self, idx: int | np.ndarray) -> tuple:
         i = np.asarray(idx) // self.n_di
@@ -86,19 +110,31 @@ class TabularDistractorEnv:
         return float(self.grid_c.points[i])
 
     def distractor_next_index(self, j: int) -> int:
-        """Logistic map on each distractor dimension, quantized onto ``grid_d``."""
+        """Most likely next distractor index (deterministic classes only)."""
         if self.d_d == 0:
             return 0
         coords = np.unravel_index(int(j), [self.n_d] * self.d_d)
-        nxt = []
-        for k in range(self.d_d):
-            p = (self.grid_d.points[coords[k]] - self.grid_d.low) / (
-                self.grid_d.high - self.grid_d.low
-            )
-            p = 4.0 * p * (1.0 - p)
-            p2 = self.grid_d.low + p * (self.grid_d.high - self.grid_d.low)
-            nxt.append(int(np.argmin(np.abs(self.grid_d.points - p2))))
-        return int(np.ravel_multi_index(tuple(nxt), [self.n_d] * self.d_d))
+        s_d = self.grid_d.points[np.asarray(coords)]
+        return self._quantize_distractors(self._distractor_next_coords(s_d))
+
+    def _distractor_dist(self, j: int) -> dict[int, float]:
+        """Distribution over next distractor indices ``{j2: prob}``."""
+        if self.d_d == 0:
+            return {0: 1.0}
+        coords = np.unravel_index(int(j), [self.n_d] * self.d_d)
+        s_d = self.grid_d.points[np.asarray(coords)]
+        if self.config.distractor_class == DistractorClass.STOCHASTIC:
+            sigma = 1.0
+            per_dim = []
+            for k in range(self.d_d):
+                d = self.grid_d.points - s_d[k]
+                p = np.exp(-0.5 * (d / sigma) ** 2)
+                per_dim.append(p / p.sum())
+            joint = per_dim[0]
+            for k in range(1, self.d_d):
+                joint = np.multiply.outer(joint, per_dim[k])
+            return {int(idx): float(pr) for idx, pr in enumerate(joint.ravel()) if pr > 0.0}
+        return {self.distractor_next_index(j): 1.0}
 
     def _control_next(self, i: int, a: int, noise: float) -> dict[int, float]:
         target = int(np.clip(i + a, 0, self.n_c - 1))
@@ -117,10 +153,10 @@ class TabularDistractorEnv:
         for i in range(self.n_c):
             for j in range(self.n_di):
                 s0 = self._pack(i, j)
-                j2 = self.distractor_next_index(j)
                 for a_idx, a in enumerate(self.ACTIONS):
-                    for i2, pr in self._control_next(i, a, noise).items():
-                        P[s0, a_idx, self._pack(i2, j2)] = pr
+                    for i2, pc in self._control_next(i, a, noise).items():
+                        for j2, pd in self._distractor_dist(j).items():
+                            P[s0, a_idx, self._pack(i2, j2)] += pc * pd
         return P
 
     def _build_rewards(self) -> np.ndarray:
@@ -192,3 +228,14 @@ class TabularDistractorEnv:
         if self.d_d > 0:
             coord += [float(self.grid_d.points[k]) for k in np.unravel_index(int(j), [self.n_d] * self.d_d)]
         return np.array(coord)
+
+    def coordinates_batch(self, idx: np.ndarray) -> np.ndarray:
+        """Vectorized ``coordinates`` for an array of state indices; shape ``(n, 1 + d_d)``."""
+        idx = np.asarray(idx, dtype=np.int64)
+        i = idx // self.n_di
+        j = idx % self.n_di
+        cols = [self.grid_c.points[i]]
+        if self.d_d > 0:
+            jcoord = np.unravel_index(j, [self.n_d] * self.d_d)
+            cols += [self.grid_d.points[c] for c in jcoord]
+        return np.stack(cols, axis=1)

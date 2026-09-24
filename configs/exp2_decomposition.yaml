@@ -1,11 +1,12 @@
 gamma: 0.99
 n_data: 8000
 alpha: 0.1
+model_kind: empirical
 tau: 0.5
 target_center: 0.0
 target_gain: 2.0
 coverage_gain: 1.5
-n_seeds: 3
+n_seeds: 10
 loss_families: [vagram, vaml1]
 
 regime:
@@ -19,3 +20,4 @@ regime:
 sweep:
   d_d: [0, 1, 2]
   goal_radius: [null, 0.3]
+  coverage: [uniform, goal]

@@ -17,11 +17,10 @@ import numpy as np
 
 from distractor_gym.agents import (
     centered_policy,
-    collect_transitions,
-    fit_empirical_model,
     induced_value_error,
     mode_prediction,
     policy_gradient,
+    sample_transitions,
 )
 from distractor_gym.diagnostics import (
     decompose_td_error,
@@ -30,7 +29,17 @@ from distractor_gym.diagnostics import (
 )
 from distractor_gym.losses import LossFamily, weight
 
-from .common import coverage_behavior, iter_sweep, load_config, make_env, save_fig, save_json
+from .common import (
+    coverage_behavior,
+    coverage_state_probs,
+    fit_model,
+    iter_sweep,
+    load_config,
+    make_env,
+    save_fig,
+    save_json,
+    save_manifest,
+)
 
 
 def _per_transition_tensors(env, V_true, grad_true, data, s_hat):
@@ -48,7 +57,6 @@ def _per_transition_tensors(env, V_true, grad_true, data, s_hat):
 def part_a_regime(regime: dict, cfg: dict, rng: np.random.Generator) -> dict:
     env = make_env(regime, seed=regime.get("seed"))
     gamma = cfg.get("gamma", 0.99)
-    alpha = cfg.get("alpha", 0.1)
     n_data = cfg.get("n_data", 8000)
     target_center = cfg.get("target_center", 0.0)
 
@@ -56,9 +64,10 @@ def part_a_regime(regime: dict, cfg: dict, rng: np.random.Generator) -> dict:
     V_true = env.evaluate_v(env.transition, policy.probs(), gamma)
     grad_true = env.value_grad(V_true)
     behavior = coverage_behavior(env, cfg.get("coverage", "goal"), gain=cfg.get("coverage_gain", 1.5))
-    data = collect_transitions(env, n_data, behavior, rng)
+    state_probs = coverage_state_probs(env, cfg.get("coverage", "goal"))
+    data = sample_transitions(env, n_data, behavior, rng, state_probs=state_probs)
 
-    P_mle = fit_empirical_model(env, data, None, alpha)
+    P_mle = fit_model(env, data, None, cfg)
     s_hat = mode_prediction(P_mle)[data[:, 0], data[:, 1]]
     delta, grad_norm, eps, cos_phi = _per_transition_tensors(env, V_true, grad_true, data, s_hat)
     res = decompose_td_error(delta, grad_norm, eps, cos_phi)
@@ -74,7 +83,6 @@ def part_a_regime(regime: dict, cfg: dict, rng: np.random.Generator) -> dict:
 def part_b_regime(regime: dict, cfg: dict, rng: np.random.Generator) -> dict:
     env = make_env(regime, seed=regime.get("seed"))
     gamma = cfg.get("gamma", 0.99)
-    alpha = cfg.get("alpha", 0.1)
     tau = cfg.get("tau", 0.5)
     n_data = cfg.get("n_data", 8000)
     target_center = cfg.get("target_center", 0.0)
@@ -85,9 +93,10 @@ def part_b_regime(regime: dict, cfg: dict, rng: np.random.Generator) -> dict:
     grad_true = env.value_grad(V_true)
     g_true = policy_gradient(env, env.transition, policy, gamma).ravel()
     behavior = coverage_behavior(env, cfg.get("coverage", "goal"), gain=cfg.get("coverage_gain", 1.5))
-    data = collect_transitions(env, n_data, behavior, rng)
+    state_probs = coverage_state_probs(env, cfg.get("coverage", "goal"))
+    data = sample_transitions(env, n_data, behavior, rng, state_probs=state_probs)
 
-    P_mle = fit_empirical_model(env, data, None, alpha)
+    P_mle = fit_model(env, data, None, cfg)
     V_hat = env.evaluate_v(P_mle, policy.probs(), gamma)
     grad_hat = env.value_grad(V_hat)
 
@@ -96,8 +105,8 @@ def part_b_regime(regime: dict, cfg: dict, rng: np.random.Generator) -> dict:
     for fam in families:
         w_est = weight(fam, V_s=V_hat[data[:, 0]], V_sp=V_hat[data[:, 2]], grad_V_sp=grad_hat[data[:, 2]], tau=tau)
         w_ora = weight(fam, V_s=V_true[data[:, 0]], V_sp=V_true[data[:, 2]], grad_V_sp=grad_true[data[:, 2]], tau=tau)
-        P_est = fit_empirical_model(env, data, w_est, alpha)
-        P_ora = fit_empirical_model(env, data, w_ora, alpha)
+        P_est = fit_model(env, data, w_est, cfg)
+        P_ora = fit_model(env, data, w_ora, cfg)
         g_est = policy_gradient(env, P_est, policy, gamma).ravel()
         g_ora = policy_gradient(env, P_ora, policy, gamma).ravel()
         stats = weight_estimator_stats(w_est, w_ora, w_est * nll)
@@ -128,6 +137,7 @@ def run(cfg: dict, out_dir: str, part: str) -> dict:
             vals = [_deep_get(r, k) for r in per_seed]
             row[k] = _mean_deep(vals)
         rows.append(row)
+    save_manifest(cfg, out_dir)
     save_json(rows, out_dir, f"part_{part}")
     if part == "a":
         _plot_a(rows, out_dir)

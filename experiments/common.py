@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import json
+import subprocess
+import sys
 from dataclasses import fields
 from pathlib import Path
 
 import numpy as np
 import yaml
 
+from distractor_gym.agents import fit_empirical_model, fit_feature_model
 from distractor_gym.core import DistractorClass, RegimeConfig
 from distractor_gym.tabular import Grid, TabularDistractorEnv
 
@@ -41,6 +44,64 @@ def save_json(obj: dict, out_dir: str, name: str) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(obj, indent=2), encoding="utf-8")
     return path
+
+
+def git_sha() -> str:
+    """Best-effort current git commit for run manifests."""
+    try:
+        out = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            capture_output=True,
+            text=True,
+            check=True,
+            cwd=Path(__file__).resolve().parent,
+        )
+        return out.stdout.strip()
+    except (subprocess.SubprocessError, OSError):
+        return "unknown"
+
+
+def save_manifest(cfg: dict, out_dir: str, name: str = "manifest") -> Path:
+    """Write a reproducibility manifest (git sha, config, versions) next to results."""
+    manifest = {
+        "git_sha": git_sha(),
+        "config": cfg,
+        "python": sys.version.split()[0],
+        "numpy": np.__version__,
+    }
+    return save_json(manifest, out_dir, name)
+
+
+def fit_model(
+    env: TabularDistractorEnv,
+    data: np.ndarray,
+    weights: np.ndarray | None,
+    cfg: dict,
+) -> np.ndarray:
+    """Fit the configured transition model (empirical table or feature-budgeted)."""
+    if cfg.get("model_kind", "empirical") == "feature":
+        return fit_feature_model(
+            env,
+            data,
+            weights,
+            capacity=int(cfg.get("capacity", 1)),
+            model_noise=float(cfg.get("model_noise", 0.5)),
+        )
+    return fit_empirical_model(env, data, weights, alpha=float(cfg.get("alpha", 0.1)))
+
+
+def coverage_state_probs(
+    env: TabularDistractorEnv, coverage: str, goal_std: float = 0.75
+) -> np.ndarray:
+    """State distribution for i.i.d. data collection: uniform or goal-concentrated."""
+    if coverage == "uniform":
+        return np.full(env.S, 1.0 / env.S)
+    if coverage == "goal":
+        xc = env.grid_c.points
+        p = np.exp(-0.5 * ((xc - env.goal) / goal_std) ** 2)
+        p = p / p.sum()
+        return np.repeat(p / env.n_di, env.n_di)
+    raise ValueError(f"unknown coverage: {coverage}")
 
 
 def save_fig(fig, out_dir: str, name: str) -> Path:

@@ -19,21 +19,29 @@ import numpy as np
 
 from distractor_gym.agents import (
     centered_policy,
-    collect_transitions,
-    fit_empirical_model,
     induced_value_error,
     policy_gradient,
+    sample_transitions,
 )
 from distractor_gym.diagnostics import gradient_alignment
 from distractor_gym.losses import LossFamily, weight
 
-from .common import coverage_behavior, iter_sweep, load_config, make_env, save_fig, save_json
+from .common import (
+    coverage_behavior,
+    coverage_state_probs,
+    fit_model,
+    iter_sweep,
+    load_config,
+    make_env,
+    save_fig,
+    save_json,
+    save_manifest,
+)
 
 
 def alignment_for_regime(regime: dict, cfg: dict, rng: np.random.Generator) -> dict:
     env = make_env(regime, seed=regime.get("seed"))
     gamma = cfg.get("gamma", 0.99)
-    alpha = cfg.get("alpha", 0.1)
     tau = cfg.get("tau", 0.5)
     n_data = cfg.get("n_data", 8000)
     target_gain = cfg.get("target_gain", 2.0)
@@ -46,9 +54,10 @@ def alignment_for_regime(regime: dict, cfg: dict, rng: np.random.Generator) -> d
     g_true_flat = g_true.ravel()
 
     behavior = coverage_behavior(env, cfg.get("coverage", "uniform"), gain=cfg.get("coverage_gain", 1.5))
-    data = collect_transitions(env, n_data, behavior, rng)
+    state_probs = coverage_state_probs(env, cfg.get("coverage", "uniform"))
+    data = sample_transitions(env, n_data, behavior, rng, state_probs=state_probs)
 
-    P_mle = fit_empirical_model(env, data, None, alpha)
+    P_mle = fit_model(env, data, None, cfg)
     V_hat = env.evaluate_v(P_mle, policy.probs(), gamma)
     grad_hat = env.value_grad(V_hat)
 
@@ -64,7 +73,7 @@ def alignment_for_regime(regime: dict, cfg: dict, rng: np.random.Generator) -> d
                 grad_V_sp=grad_hat[data[:, 2]],
                 tau=tau,
             )
-        P_w = fit_empirical_model(env, data, w, alpha)
+        P_w = fit_model(env, data, w, cfg)
         g_model = policy_gradient(env, P_w, policy, gamma)
         results[fam.value] = float(gradient_alignment(g_true_flat, g_model.ravel()))
     results["risk_mle"] = float(induced_value_error(env, P_mle, V_true, data))
@@ -84,6 +93,7 @@ def run(cfg: dict, out_dir: str) -> dict:
             row[k] = float(np.mean(vals))
             row[k + "_std"] = float(np.std(vals))
         rows.append(row)
+    save_manifest(cfg, out_dir)
     save_json(rows, out_dir, "results")
     _plot(rows, out_dir)
     return {"rows": rows, "out_dir": out_dir}
