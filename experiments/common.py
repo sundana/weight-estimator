@@ -47,16 +47,25 @@ def save_json(obj: dict, out_dir: str, name: str) -> Path:
 
 
 def git_sha() -> str:
-    """Best-effort current git commit for run manifests."""
+    """Best-effort current git commit (with ``-dirty`` suffix) for run manifests."""
     try:
+        root = Path(__file__).resolve().parent
         out = subprocess.run(
             ["git", "rev-parse", "HEAD"],
             capture_output=True,
             text=True,
             check=True,
-            cwd=Path(__file__).resolve().parent,
+            cwd=root,
         )
-        return out.stdout.strip()
+        sha = out.stdout.strip()
+        dirty = subprocess.run(
+            ["git", "status", "--porcelain"],
+            capture_output=True,
+            text=True,
+            check=True,
+            cwd=root,
+        )
+        return f"{sha}-dirty" if dirty.stdout.strip() else sha
     except (subprocess.SubprocessError, OSError):
         return "unknown"
 
