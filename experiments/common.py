@@ -59,7 +59,7 @@ def git_sha() -> str:
         )
         sha = out.stdout.strip()
         dirty = subprocess.run(
-            ["git", "status", "--porcelain"],
+            ["git", "status", "--porcelain", "--", ".", ":(exclude)runs"],
             capture_output=True,
             text=True,
             check=True,
