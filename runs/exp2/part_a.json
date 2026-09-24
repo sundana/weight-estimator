@@ -1,0 +1,206 @@
+[
+  {
+    "regime": {
+      "d_c": 1,
+      "d_d": 0,
+      "distractor_class": "nonlinear",
+      "reward_sparsity": 1.0,
+      "transition_noise": 0.1,
+      "seed": 0,
+      "goal_radius": null
+    },
+    "coverage": "uniform",
+    "r2": 0.9812984696386604,
+    "slope": 0.9981865192957876,
+    "mean_cos_phi": 0.094975,
+    "curvature_residual": 0.0037151098606869127,
+    "n": 8000.0
+  },
+  {
+    "regime": {
+      "d_c": 1,
+      "d_d": 0,
+      "distractor_class": "nonlinear",
+      "reward_sparsity": 1.0,
+      "transition_noise": 0.1,
+      "seed": 0,
+      "goal_radius": null
+    },
+    "coverage": "goal",
+    "r2": 0.9884480442090273,
+    "slope": 1.0488217128780535,
+    "mean_cos_phi": 0.0996,
+    "curvature_residual": 0.006377922126008502,
+    "n": 8000.0
+  },
+  {
+    "regime": {
+      "d_c": 1,
+      "d_d": 0,
+      "distractor_class": "nonlinear",
+      "reward_sparsity": 1.0,
+      "transition_noise": 0.1,
+      "seed": 0,
+      "goal_radius": 0.3
+    },
+    "coverage": "uniform",
+    "r2": 0.7571483578835809,
+    "slope": 1.0178105532692063,
+    "mean_cos_phi": 0.09472499999999999,
+    "curvature_residual": 0.007303352380953333,
+    "n": 8000.0
+  },
+  {
+    "regime": {
+      "d_c": 1,
+      "d_d": 0,
+      "distractor_class": "nonlinear",
+      "reward_sparsity": 1.0,
+      "transition_noise": 0.1,
+      "seed": 0,
+      "goal_radius": 0.3
+    },
+    "coverage": "goal",
+    "r2": 0.810517172843672,
+    "slope": 1.1342537963818817,
+    "mean_cos_phi": 0.0987625,
+    "curvature_residual": 0.02128337221721755,
+    "n": 8000.0
+  },
+  {
+    "regime": {
+      "d_c": 1,
+      "d_d": 1,
+      "distractor_class": "nonlinear",
+      "reward_sparsity": 1.0,
+      "transition_noise": 0.1,
+      "seed": 0,
+      "goal_radius": null
+    },
+    "coverage": "uniform",
+    "r2": 0.9816191905711849,
+    "slope": 0.998570164945165,
+    "mean_cos_phi": 0.09369999999999999,
+    "curvature_residual": 0.0036079961289070977,
+    "n": 8000.0
+  },
+  {
+    "regime": {
+      "d_c": 1,
+      "d_d": 1,
+      "distractor_class": "nonlinear",
+      "reward_sparsity": 1.0,
+      "transition_noise": 0.1,
+      "seed": 0,
+      "goal_radius": null
+    },
+    "coverage": "goal",
+    "r2": 0.9886607808921035,
+    "slope": 1.0509489390000524,
+    "mean_cos_phi": 0.097775,
+    "curvature_residual": 0.006317277227560918,
+    "n": 8000.0
+  },
+  {
+    "regime": {
+      "d_c": 1,
+      "d_d": 1,
+      "distractor_class": "nonlinear",
+      "reward_sparsity": 1.0,
+      "transition_noise": 0.1,
+      "seed": 0,
+      "goal_radius": 0.3
+    },
+    "coverage": "uniform",
+    "r2": 0.7634568444168369,
+    "slope": 1.0287887110624738,
+    "mean_cos_phi": 0.09365,
+    "curvature_residual": 0.0074242166914074955,
+    "n": 8000.0
+  },
+  {
+    "regime": {
+      "d_c": 1,
+      "d_d": 1,
+      "distractor_class": "nonlinear",
+      "reward_sparsity": 1.0,
+      "transition_noise": 0.1,
+      "seed": 0,
+      "goal_radius": 0.3
+    },
+    "coverage": "goal",
+    "r2": 0.8110445799308511,
+    "slope": 1.1476323251443963,
+    "mean_cos_phi": 0.0982125,
+    "curvature_residual": 0.021094900345058534,
+    "n": 8000.0
+  },
+  {
+    "regime": {
+      "d_c": 1,
+      "d_d": 2,
+      "distractor_class": "nonlinear",
+      "reward_sparsity": 1.0,
+      "transition_noise": 0.1,
+      "seed": 0,
+      "goal_radius": null
+    },
+    "coverage": "uniform",
+    "r2": 0.9809192895520781,
+    "slope": 1.0003875955469042,
+    "mean_cos_phi": 0.093375,
+    "curvature_residual": 0.003636575642360583,
+    "n": 8000.0
+  },
+  {
+    "regime": {
+      "d_c": 1,
+      "d_d": 2,
+      "distractor_class": "nonlinear",
+      "reward_sparsity": 1.0,
+      "transition_noise": 0.1,
+      "seed": 0,
+      "goal_radius": null
+    },
+    "coverage": "goal",
+    "r2": 0.9884150083434102,
+    "slope": 1.0490164977491285,
+    "mean_cos_phi": 0.0975625,
+    "curvature_residual": 0.0062623635760501685,
+    "n": 8000.0
+  },
+  {
+    "regime": {
+      "d_c": 1,
+      "d_d": 2,
+      "distractor_class": "nonlinear",
+      "reward_sparsity": 1.0,
+      "transition_noise": 0.1,
+      "seed": 0,
+      "goal_radius": 0.3
+    },
+    "coverage": "uniform",
+    "r2": 0.752909240000204,
+    "slope": 1.034920190305146,
+    "mean_cos_phi": 0.0939,
+    "curvature_residual": 0.007577715922037605,
+    "n": 8000.0
+  },
+  {
+    "regime": {
+      "d_c": 1,
+      "d_d": 2,
+      "distractor_class": "nonlinear",
+      "reward_sparsity": 1.0,
+      "transition_noise": 0.1,
+      "seed": 0,
+      "goal_radius": 0.3
+    },
+    "coverage": "goal",
+    "r2": 0.8120380210146341,
+    "slope": 1.136743226531379,
+    "mean_cos_phi": 0.0978625,
+    "curvature_residual": 0.021184798533084154,
+    "n": 8000.0
+  }
+]

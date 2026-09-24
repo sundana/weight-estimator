@@ -1,0 +1,206 @@
+[
+  {
+    "regime": {
+      "d_c": 1,
+      "d_d": 0,
+      "distractor_class": "stochastic",
+      "reward_sparsity": 1.0,
+      "transition_noise": 0.1,
+      "seed": 0,
+      "goal_radius": null
+    },
+    "coverage": "uniform",
+    "r2": 0.3829892206697293,
+    "slope": 0.5939061361276361,
+    "mean_cos_phi": 0.9228000000000002,
+    "curvature_residual": 0.708049911074218,
+    "n": 8000.0
+  },
+  {
+    "regime": {
+      "d_c": 1,
+      "d_d": 0,
+      "distractor_class": "stochastic",
+      "reward_sparsity": 1.0,
+      "transition_noise": 0.1,
+      "seed": 0,
+      "goal_radius": null
+    },
+    "coverage": "goal",
+    "r2": -0.17374286485647977,
+    "slope": 0.5698316965660599,
+    "mean_cos_phi": 0.9898999999999999,
+    "curvature_residual": 1.4741665972133735,
+    "n": 8000.0
+  },
+  {
+    "regime": {
+      "d_c": 1,
+      "d_d": 0,
+      "distractor_class": "stochastic",
+      "reward_sparsity": 1.0,
+      "transition_noise": 0.1,
+      "seed": 0,
+      "goal_radius": 0.3
+    },
+    "coverage": "uniform",
+    "r2": -0.1254206052676112,
+    "slope": 0.18864901726663424,
+    "mean_cos_phi": 0.922925,
+    "curvature_residual": 0.8942029203221719,
+    "n": 8000.0
+  },
+  {
+    "regime": {
+      "d_c": 1,
+      "d_d": 0,
+      "distractor_class": "stochastic",
+      "reward_sparsity": 1.0,
+      "transition_noise": 0.1,
+      "seed": 0,
+      "goal_radius": 0.3
+    },
+    "coverage": "goal",
+    "r2": -1.372923871993135,
+    "slope": 0.20572750364216086,
+    "mean_cos_phi": 0.9904374999999999,
+    "curvature_residual": 2.4821874775991155,
+    "n": 8000.0
+  },
+  {
+    "regime": {
+      "d_c": 1,
+      "d_d": 1,
+      "distractor_class": "stochastic",
+      "reward_sparsity": 1.0,
+      "transition_noise": 0.1,
+      "seed": 0,
+      "goal_radius": null
+    },
+    "coverage": "uniform",
+    "r2": 0.38050076573178215,
+    "slope": 0.5956382723887226,
+    "mean_cos_phi": 0.5684897047894714,
+    "curvature_residual": 0.7216045174595032,
+    "n": 8000.0
+  },
+  {
+    "regime": {
+      "d_c": 1,
+      "d_d": 1,
+      "distractor_class": "stochastic",
+      "reward_sparsity": 1.0,
+      "transition_noise": 0.1,
+      "seed": 0,
+      "goal_radius": null
+    },
+    "coverage": "goal",
+    "r2": 0.174444744388206,
+    "slope": 0.5475317270823342,
+    "mean_cos_phi": 0.6666538573230725,
+    "curvature_residual": 1.514423262147416,
+    "n": 8000.0
+  },
+  {
+    "regime": {
+      "d_c": 1,
+      "d_d": 1,
+      "distractor_class": "stochastic",
+      "reward_sparsity": 1.0,
+      "transition_noise": 0.1,
+      "seed": 0,
+      "goal_radius": 0.3
+    },
+    "coverage": "uniform",
+    "r2": -0.14669753679119443,
+    "slope": 0.1782330410721778,
+    "mean_cos_phi": 0.5682649963932934,
+    "curvature_residual": 0.9156740260606189,
+    "n": 8000.0
+  },
+  {
+    "regime": {
+      "d_c": 1,
+      "d_d": 1,
+      "distractor_class": "stochastic",
+      "reward_sparsity": 1.0,
+      "transition_noise": 0.1,
+      "seed": 0,
+      "goal_radius": 0.3
+    },
+    "coverage": "goal",
+    "r2": -1.2946085894478336,
+    "slope": 0.1906941049804538,
+    "mean_cos_phi": 0.66524323644618,
+    "curvature_residual": 2.52645295070805,
+    "n": 8000.0
+  },
+  {
+    "regime": {
+      "d_c": 1,
+      "d_d": 2,
+      "distractor_class": "stochastic",
+      "reward_sparsity": 1.0,
+      "transition_noise": 0.1,
+      "seed": 0,
+      "goal_radius": null
+    },
+    "coverage": "uniform",
+    "r2": 0.7170871229388398,
+    "slope": 0.8869685819434661,
+    "mean_cos_phi": 0.46107087958327053,
+    "curvature_residual": 0.42081284168741,
+    "n": 8000.0
+  },
+  {
+    "regime": {
+      "d_c": 1,
+      "d_d": 2,
+      "distractor_class": "stochastic",
+      "reward_sparsity": 1.0,
+      "transition_noise": 0.1,
+      "seed": 0,
+      "goal_radius": null
+    },
+    "coverage": "goal",
+    "r2": 0.2312050542261007,
+    "slope": 0.5493554894814261,
+    "mean_cos_phi": 0.5379797674089127,
+    "curvature_residual": 1.4815421943125964,
+    "n": 8000.0
+  },
+  {
+    "regime": {
+      "d_c": 1,
+      "d_d": 2,
+      "distractor_class": "stochastic",
+      "reward_sparsity": 1.0,
+      "transition_noise": 0.1,
+      "seed": 0,
+      "goal_radius": 0.3
+    },
+    "coverage": "uniform",
+    "r2": 0.031255862398003466,
+    "slope": 0.36147854458479,
+    "mean_cos_phi": 0.45780504141405737,
+    "curvature_residual": 0.5977054361437235,
+    "n": 8000.0
+  },
+  {
+    "regime": {
+      "d_c": 1,
+      "d_d": 2,
+      "distractor_class": "stochastic",
+      "reward_sparsity": 1.0,
+      "transition_noise": 0.1,
+      "seed": 0,
+      "goal_radius": 0.3
+    },
+    "coverage": "goal",
+    "r2": -1.3050743370845024,
+    "slope": 0.188627859406764,
+    "mean_cos_phi": 0.544226144807173,
+    "curvature_residual": 2.5284082492422213,
+    "n": 8000.0
+  }
+]
