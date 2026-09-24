@@ -1,5 +1,5 @@
 {
-  "git_sha": "ef1046535eb696f888f7eb01342c1639e90469ff",
+  "git_sha": "55459c28bc061955b9216a07df4834f2e8fd0c90-dirty",
   "config": {
     "gamma": 0.99,
     "n_data": 8000,
