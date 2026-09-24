@@ -1,0 +1,19 @@
+\begin{table}[htbp]
+\centering
+\caption{Capacity-limited weight-estimator ablation at $d_d = 2$: estimated ($\hat w$) vs oracle ($w$) weights on the policy-free value-aware risk $\mathbb{E}\lvert V(s') - \mathbb{E}_{\hat P}[V]\rvert$ and on alignment.}
+\label{tab:exp2b}
+\begin{tabular}{llcccccc}
+\toprule
+Regime & family & $R_{\text{MLE}}$ & $R_{\text{est}}$ & $R_{\text{ora}}$ & $a_{\text{MLE}}$ & $a_{\text{est}}$ & $a_{\text{ora}}$ \\
+\midrule
+dense, uniform & vagram & 1.376 & 1.375 & 1.375 & -0.12 & -0.81 & -0.29 \\
+dense, uniform & vaml1 & 1.376 & 1.325 & 1.374 & -0.12 & 0.22 & -0.71 \\
+dense, goal & vagram & 2.258 & 2.258 & 2.249 & 0.30 & 0.15 & 0.15 \\
+dense, goal & vaml1 & 2.258 & 2.332 & 2.251 & 0.30 & 0.40 & 0.11 \\
+sparse, uniform & vagram & 0.485 & 0.513 & 0.484 & -0.19 & -0.15 & -0.04 \\
+sparse, uniform & vaml1 & 0.485 & 0.498 & 0.485 & -0.19 & 0.32 & -0.08 \\
+sparse, goal & vagram & 1.210 & 1.208 & 1.366 & 0.09 & 0.09 & -0.39 \\
+sparse, goal & vaml1 & 1.210 & 1.251 & 1.353 & 0.09 & 0.46 & -0.21 \\
+\bottomrule
+\end{tabular}
+\end{table}

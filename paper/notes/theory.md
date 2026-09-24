@@ -152,20 +152,22 @@ penalty. This yields the **crossover conditions**:
 - **Informative coverage with a strong gradient**: `Cov(w, Y)` aligns with `grad V`,
   the signal dominates, and value-aware weighting wins.
 
-The computable statistic
+The computable statistics
 
 ```
-SNR_w = (E[w * ell])^2 / Var(w * ell)
+SNR_w   = (E[w * ell])^2 / Var(w * ell)                  (Lambert-style proxy)
+SNR_dec = n * (gbar . Cov(w, Y))^2 / (||gbar||^2 sigma_w^2 Var(||Y||))   (derived)
 ```
 
-proxies signal over penalty: it is large exactly when the weights are informative and
-stable. In the tabular suite (exp1b), the policy-gradient alignment delta
-`cos(g_true, g_w) - cos(g_true, g_MLE)` is positive in the goal-coverage sparse
-regimes and negative precisely where `SNR_w` collapses (uniform coverage, dense
-reward), while the Bellman-risk delta is at or below zero across all regimes
-(Theorem 1). The alignment delta is a positive (if noisy) function of `SNR_w`
-(Spearman/Pearson ~ 0.3-0.5 across the current sweep), motivating a sharper
-decision-aware diagnostic as the follow-up.
+proxy signal over penalty. `SNR_dec` is the ratio implied by the expression above with
+the threshold `tau = 1` (value-aware wins iff `SNR_dec > 1`); it is scale-invariant in
+`w`. In the tabular suite (exp1b), however, `SNR_dec` is **not calibrated**: it predicts
+value-aware improvement in 100% of regimes (both model classes) while the measured
+alignment delta is positive in only 27-54%. As a rank statistic it is no better than
+the heuristic `SNR_w` (AUC 0.56-0.60 capacity-limited; 0.05-0.22 uncapacitated), and
+`SNR_w` is itself weak (AUC 0.40-0.78). This is reported as an open negative result:
+the first-order crossover criterion is directionally correct but its magnitude/threshold
+is not predictive in finite samples, motivating a sharper decision-aware diagnostic.
 
 ---
 
@@ -180,4 +182,16 @@ decision-aware diagnostic as the follow-up.
   pure empirical estimator, and smoothing shifts the balance slightly.
 - Theorem 3 is stated as a criterion (signal vs penalty decomposition), not a full
   characterization; the empirical crossover in exp1b validates the sign and
-  monotonicity rather than a closed-form threshold `tau`.
+  monotonicity rather than a closed-form threshold `tau`. The derived statistic
+  `SNR_dec` (threshold `tau = 1`) is not calibrated in finite samples (see above), so
+  the closed-form threshold remains open work.
+
+## Phase diagram (exp5)
+
+`experiments/exp5_phase.py` sweeps `capacity x d_d x sparsity` under goal coverage with
+stochastic distractors and classifies each cell value-aware-win / MLE-win / both-fail
+(margin 0.1 on the alignment delta). The pattern is consistent: adding distractors at
+small capacity makes MLE misguide and value-aware weighting win; raising capacity
+removes the pressure and the two coincide. Depending on the seed/noise draw, a few
+larger-capacity sparse cells flip; the bulk structure is stable. Figure:
+`runs/exp5_phase/phase_diagram.png`.

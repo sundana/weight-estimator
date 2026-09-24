@@ -263,13 +263,22 @@ yields the crossover conditions:
   $\Rightarrow$ value-aware wins.
 \end{itemize}
 
-The computable statistic $\mathrm{SNR}_w = \mathbb{E}[w\ell]^2 / \mathrm{Var}(w\ell)$
-proxies signal over penalty. \emph{Empirical check (Exp~1/1b):} under a capacity limit
-the alignment delta
-$\cos(g_{\text{true}}, g_w) - \cos(g_{\text{true}}, g_{\mathrm{MLE}})$ is positive for
-VAML-1/Lambert exactly in the stochastic-distractor regimes where MLE alignment is
-negative; it is a positive-but-noisy function of $\mathrm{SNR}_w$ (Pearson
-$\approx 0.25$--$0.34$), motivating a sharper diagnostic (open item).
+The computable statistics
+\begin{equation}
+  \mathrm{SNR}_w = \frac{\mathbb{E}[w\ell]^2}{\mathrm{Var}(w\ell)},
+  \qquad
+  \mathrm{SNR}_{\mathrm{dec}} = \frac{n\,\bigl(\bar g \cdot \mathrm{Cov}(w, Y)\bigr)^2}
+    {\lVert \bar g\rVert^2\, \sigma_w^2\, \mathrm{Var}(\lVert Y\rVert)}
+\end{equation}
+proxy signal over penalty. $\mathrm{SNR}_{\mathrm{dec}}$ is the ratio implied by
+Theorem~\ref{thm:crossover} with threshold $\tau = 1$ (value-aware wins iff
+$\mathrm{SNR}_{\mathrm{dec}} > 1$), and is scale-invariant in $w$
+(\texttt{diagnostics.decision\_crossover\_snr}). \emph{Empirical check (Exp~1b):} the
+derived criterion is \emph{not} calibrated --- it predicts value-aware improvement in
+$100\%$ of regimes while the measured alignment delta is positive in only $27$--$54\%$
+(AUC $0.56$--$0.60$ capacity-limited, $0.05$--$0.22$ uncapacitated, versus the heuristic
+$\mathrm{SNR}_w$ at $0.40$--$0.78$). The decomposition is directionally sound but the
+finite-sample threshold is open work.
 
 \section{Distractor-Gym}
 
@@ -341,6 +350,8 @@ The pattern matches Theorem~\ref{thm:crossover}: VaGraM's weight
 $\lVert \nabla V\rVert$ ignores $\cos\phi$ and the curvature residual, both of which
 degrade with $d_d$ (Exp~2 Part A), while VAML-1/Lambert are better behaved.
 
+\input{tables/exp1_alignment.tex}
+
 \section{Experiment 2: Decomposition and Weight-Estimator Ablation}
 
 \textbf{Part A (Lemma~\ref{lem:decomp}).}
@@ -380,6 +391,28 @@ sparse, goal    & 0.09 & 0.47 & 0.09 \\
 The value-aware benefit is decision-level (alignment) and does not require lower
 Bellman risk --- consistent with Theorem~\ref{thm:crossover}.
 
+\input{tables/exp2_oracle.tex}
+
+\section{Experiment 5: Mismatch Phase Diagram}
+\label{sec:phase}
+
+\texttt{experiments/exp5\_phase.py} sweeps capacity $\times$ $d_d$ $\times$ sparsity
+under goal coverage with stochastic distractors and classifies each cell (best
+value-aware vs MLE, margin $0.1$).
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{../runs/exp5_phase/phase_diagram.png}
+\caption{Mismatch phase diagram. Color is best value-aware minus MLE alignment
+($\text{red}>0$: value-aware-win); stars mark value-aware-win cells. Distractors at
+small capacity drive MLE below the value-aware families; larger capacity removes the
+pressure. A few larger-capacity cells are seed-sensitive.}
+\label{fig:phase}
+\end{figure}
+
+The structure is consistent: distractors push MLE down at small capacity and
+value-aware weighting wins; raising capacity removes the pressure.
+
 \section{Experiment 1b: Crossover and the Scope of Theorem~\ref{thm:pred}}
 
 \begin{itemize}
@@ -392,6 +425,8 @@ Bellman risk --- consistent with Theorem~\ref{thm:crossover}.
   \emph{reduce} prediction risk, so the dominance result does not transfer
   (Remark~\ref{rem:scope}).
 \end{itemize}
+
+\input{tables/exp1b_scope.tex}
 
 \section{Experiment 4: Continuous Neural Transfer}
 
@@ -425,8 +460,12 @@ value-aware weighting is not helping; the model is in the MLE-optimal regime.
 \section{Limitations and Future Work}
 
 \begin{itemize}
-\item The $\mathrm{SNR}_w$ crossover statistic is a positive-but-noisy predictor; a
-  sharper decision-aware statistic is open work.
+\item The $\mathrm{SNR}_w$ crossover statistic is a positive-but-noisy predictor, and
+  the derived $\mathrm{SNR}_{\mathrm{dec}}$ is not calibrated (predicts value-aware-win
+  in $100\%$ of regimes; AUC no better than $\mathrm{SNR}_w$). A closed-form threshold
+  $\tau$ remains open work.
+\item The phase diagram (Fig.~\ref{fig:phase}) has some seed-sensitive cells at larger
+  capacity; more seeds and a finer capacity sweep are needed to tighten it.
 \item The tabular results are stylized. The continuous transfer (Exp~4) was not re-run:
   \texttt{torch} is uninstalled and the projection loss was computed in mismatched
   coordinates; that experiment is withdrawn until fixed.

@@ -1,0 +1,23 @@
+\begin{table}[htbp]
+\centering
+\caption{Policy-gradient alignment $\cos(g_{\text{true}}, g_{\mathrm{model}})$ under the capacity-limited model with stochastic distractors (10 seeds).}
+\label{tab:exp1}
+\begin{tabular}{llcccc}
+\toprule
+Regime & $d_d$ & MLE & VAML-1 & VaGraM & Lambert \\
+\midrule
+dense, uniform & 0 & 0.86 & 0.84 & 0.86 & 0.86 \\
+dense, goal & 0 & 0.85 & 0.84 & 0.85 & 0.86 \\
+sparse, uniform & 0 & 0.66 & 0.62 & 0.67 & 0.66 \\
+sparse, goal & 0 & 0.64 & 0.61 & 0.66 & 0.68 \\
+dense, uniform & 1 & 0.82 & 0.78 & 0.82 & 0.67 \\
+dense, goal & 1 & 0.80 & 0.72 & 0.78 & 0.45 \\
+sparse, uniform & 1 & 0.43 & 0.42 & 0.43 & 0.47 \\
+sparse, goal & 1 & 0.45 & 0.57 & 0.43 & 0.34 \\
+dense, uniform & 2 & -0.08 & -0.15 & -0.45 & 0.13 \\
+dense, goal & 2 & -0.09 & 0.34 & -0.09 & 0.47 \\
+sparse, uniform & 2 & -0.22 & 0.16 & -0.14 & 0.11 \\
+sparse, goal & 2 & 0.32 & 0.62 & 0.34 & 0.27 \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -2,11 +2,13 @@
 
 ## A Diagnostic Suite for Objective Mismatch in Model-Based Reinforcement Learning
 
-**Status:** Draft v2 (tabular revision). Supersedes `draft_v1.md`. All numbers below
-are produced by the committed runs under `runs/` (each with a `manifest.json` pinning
-the config, git SHA, and library versions) at 10 seeds. The continuous neural transfer
-(Exp 4) was **not** re-run in this revision and its earlier numbers are withdrawn
-pending a `torch` provisioning + coordinate-scaling fix.
+**Status:** Draft v2.1 (tabular, rescaled as a theory/diagnostic paper). Supersedes
+`draft_v1.md`. All numbers are produced by the committed runs under `runs/` (each with a
+`manifest.json` pinning the config, git SHA, and library versions) at 10 seeds (5 for the
+phase diagram). Paper tables are generated from the runs by `experiments/report.py`
+(`paper/tables/*.tex`). The continuous neural transfer (Exp 4) was **not** re-run in this
+revision and its earlier numbers are withdrawn pending a `torch` provisioning + a
+coordinate-scaling fix.
 
 ---
 
@@ -137,10 +139,13 @@ R_dec(P_hat_w) - R_dec(P_hat_MLE)
 ```
 Weighting improves the decision risk iff the signal exceeds the penalty. This predicts
 MLE-optimality when `grad V` is zero along distractor dims, and value-aware advantage
-when coverage concentrates a strong gradient. *Empirical check (Exp 1/1b):* under a
-capacity limit the alignment delta is positive for VAML-1/Lambert exactly in the
-stochastic-distractor regimes where MLE alignment is negative; `SNR_w` is a positive
-but noisy proxy (Pearson ~0.25-0.34), motivating a sharper statistic (open item).
+when coverage concentrates a strong gradient. We instantiate the criterion as the
+scale-invariant statistic `SNR_dec = n (gbar·Cov(w,Y))^2 / (||gbar||^2 σ_w^2 Var(||Y||))`
+with threshold `tau = 1` (`diagnostics.decision_crossover_snr`). *Empirical check (Exp
+1b):* the criterion is **not calibrated** — it predicts value-aware improvement in 100%
+of regimes while the measured alignment delta is positive in only 27–54% (AUC 0.56–0.60
+capacity-limited, 0.05–0.22 uncapacitated, versus the heuristic `SNR_w` at 0.40–0.78).
+The decomposition is directionally sound but the finite-sample threshold is open work.
 
 ---
 
@@ -221,6 +226,37 @@ At `d_d=2`, VAML-1 has higher alignment than MLE while VaGraM is unstable:
 The value-aware benefit is decision-level (alignment) and does not require lower
 Bellman risk -- consistent with Theorem 3.
 
+The oracle-vs-estimated ablation (generated table `paper/tables/exp2_oracle.tex`) shows
+that at `d_d=2` the estimated-weight risk is close to the oracle-weight risk
+(e.g. dense+uniform VAML-1: est 1.325 vs ora 1.374 vs MLE 1.376), so under a capacity
+limit the weight-estimation noise is no longer the dominant gap it is in the
+uncapacitated estimator.
+
+---
+
+## 6b Experiment 5: Mismatch Phase Diagram
+
+`experiments/exp5_phase.py` sweeps `capacity x d_d x sparsity` under goal coverage with
+stochastic distractors and classifies each cell (best value-aware vs MLE, margin 0.1).
+Figure: `runs/exp5_phase/phase_diagram.png`; data `runs/exp5_phase/phase.json`.
+
+```
+dense reward:  capacity \ d_d      0        1        2
+               cap 1            +0.00    +0.27*   +0.38*
+               cap 2            +0.00    -0.01    +0.22*
+               cap 3            -0.00    -0.00    +0.12*
+               cap 5            -0.00    +0.02    +0.02
+sparse reward: cap 1            +0.04    +0.49*   +0.71*
+               cap 2            +0.04    +0.09    +0.35*
+               cap 3            +0.04    +0.12*   +0.06
+               cap 5            +0.04    +0.10    +0.16*
+```
+
+(`*` = value-aware-win; `+x` = best value-aware minus MLE alignment.) The structure is
+consistent: distractors push MLE down at small capacity and value-aware weighting wins;
+raising capacity removes the pressure. A few larger-capacity cells flip with the seed
+draw; the bulk structure is stable.
+
 ---
 
 ## 7 Experiment 1b: Crossover and the Scope of Theorem 1
@@ -258,13 +294,15 @@ helping.
 
 ## 9 Limitations and Future Work
 
-- The `SNR_w` crossover statistic remains a positive-but-noisy proxy.
+- The `SNR_w` crossover statistic remains a positive-but-noisy proxy, and the derived
+  `SNR_dec` is not calibrated (predicts value-aware-win in 100% of regimes; AUC no
+  better than `SNR_w`). A closed-form threshold `tau` remains open work.
 - The tabular results are stylized. The continuous transfer (Exp 4) was **not** re-run
   in this revision: `torch` is uninstalled and the earlier projection loss was computed
   in mismatched (raw vs standardized) coordinates; that experiment is withdrawn until
   fixed.
-- The distractor `model_noise` / `capacity` interaction is sensitive; more seeds and a
-  systematic capacity sweep are needed to tighten the phase diagram.
+- The phase diagram has some seed-sensitive cells at larger capacity; more seeds and a
+  finer capacity sweep are needed to tighten it.
 - Deep baselines (MBPO/VaGraM, DreamerV3, TD-MPC2) remain planned work; `mbrl-lib` pins
   old `gym`.
 
