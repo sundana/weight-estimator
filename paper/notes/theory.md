@@ -32,15 +32,18 @@ The second term is the **curvature residual**: the part of the model-induced val
 error unexplained by the first-order (value-gradient) term.
 
 **Empirical check (exp2 Part A).** In the tabular suite the factorization
-`|delta_TD| ~ ||grad V|| * eps_model * |cos phi|` holds with `R^2 = 0.99` under the
-dense reward and `R^2 = 0.83` under the sparse (step-function) value, where the
-curvature residual grows. This decomposition is the object value-aware weighting
-targets: VaGraM weights by `||grad V||` alone, so it is mis-specified wherever the
-curvature term or the `cos phi` distribution dominates.
+`|delta_TD| ~ ||grad V|| * eps_model * |cos phi|` holds with `R^2 = 0.98` under the
+dense reward and `R^2 = 0.76-0.81` under the sparse (step-function) value, where the
+curvature residual grows. With the uncapacitated empirical model the fit is invariant
+to the distractor count `d_d` (deterministic distractors are fit exactly and
+`grad_{s_d} V = 0`). Under a **capacity-limited** feature model the fit degrades with
+`d_d`: `mean |cos phi|` falls from ~0.92 (`d_d=0`) to ~0.46 (`d_d=2`) and the curvature
+residual more than doubles, which is the regime where gradient-only weighting is
+mis-specified.
 
 ---
 
-## Theorem 1 (prediction-risk dominance of MLE)
+## Theorem 1 (prediction-risk of the weighted ratio estimator)
 
 Let `y_1, ..., y_n` be iid draws from the true transition at a fixed `(s, a)`, with
 value scores `V(y_i)`. Let `w_i >= 0` be non-negative weights with `E[w_i] = 1`,
@@ -50,35 +53,54 @@ value scores `V(y_i)`. Let `w_i >= 0` be non-negative weights with `E[w_i] = 1`,
 mu_hat_MLE = mean(V(y_i)),        mu_hat_w = sum w_i V(y_i) / sum w_i
 ```
 
-Then, to first order in `1/n`,
+Then, via the delta method applied to the ratio (with `mu_X = E[V]`, `mu_Y = 1`),
 
 ```
-Var(mu_hat_w) = Var(mu_hat_MLE) + sigma_w^2 * E[V^2] / n
-E[mu_hat_w]   = E[V(y)] + Cov(w, V(y)) + O(1/n)
+Var(mu_hat_w) = (1/n) Var(V) (1 + sigma_w^2)
+              = Var(mu_hat_MLE) + sigma_w^2 Var(V) / n
+E[mu_hat_w]   = E[V] + Cov(w, V(y)) + O(1/n)
 ```
 
 so the expected squared value-prediction error satisfies
 
 ```
-E[(mu_hat_w - E[V])^2] = E[(mu_hat_MLE - E[V])^2]
-                         + sigma_w^2 * E[V^2] / n + Cov(w, V(y))^2 + O(n^{-3/2})
+E[(mu_hat_w - E[V])^2] = (1/n) Var(V)(1 + sigma_w^2) + Cov(w, V(y))^2 + O(n^{-3/2}).
 ```
 
-**Proof sketch.** Delta method for the ratio estimator: with `E[w] = 1`,
-`Var(mu_hat_w) ~ (1/n) Var(w V) = (1/n)(Var(V) + sigma_w^2 E[V^2])` by independence;
-bias via `E[w V]/E[w] ~ E[w V] = E[V] + Cov(w, V)`. The MLE terms drop out of the
-variance by the same argument with `sigma_w = 0`.
+**Proof.** Write `X = mean(w V)`, `Y = mean(w)`, so `mu_hat_w = X / Y`. With
+`mu_X = E[V]`, `mu_Y = 1`, the delta method gives
 
-**Consequences (validated in exp1b Part Bellman).** Value-aware weighting **cannot
-improve the conditional-mean (Bellman-target) value prediction**: it only adds a
-variance penalty `sigma_w^2 E[V^2]/n` and a bias term `Cov(w, V)^2`. Both grow when
-the weight estimator is noisy (sparse reward -> high-variance `V_hat` -> large
-`sigma_w^2`) and when the value is flat (distractor dims -> `Cov(w, V) ~ 0`). This
-reproduces the empirical fact that value-aware model learning tends to underperform
-MLE on global accuracy metrics (VaGraM 2022, Sec. 1). In the tabular suite, the
-Bellman risk of the MLE model is at or below that of every weighted model, and the
-estimated-weight model is strictly worse than the oracle-weight model (weight
-estimator noise dominates the gap).
+```
+Var(X/Y) = Var(X) - 2 E[V] Cov(X, Y) + E[V]^2 Var(Y).
+```
+
+Under independence of `w` and `y`: `Var(X) = (1/n)(Var(V) + sigma_w^2 E[V^2])`,
+`Cov(X, Y) = (1/n) E[V] sigma_w^2`, `Var(Y) = sigma_w^2 / n`. Substituting and using
+`E[V^2] - E[V]^2 = Var(V)` yields `(1/n) Var(V)(1 + sigma_w^2)`. The bias follows from
+`E[X]/E[Y] = E[wV] = E[V] + Cov(w, V)` to leading order. ∎
+
+> **Correction.** Earlier drafts stated the variance penalty as
+> `sigma_w^2 E[V^2] / n`. That is the *numerator-only* approximation `(1/n) Var(wV)`
+> and omits the `-2 E[V] Cov(X, Y) + E[V]^2 Var(Y)` terms contributed by the ratio
+> denominator. The correct first-order penalty is `sigma_w^2 Var(V) / n`; the earlier
+> form overstates it by `sigma_w^2 E[V]^2 / n`.
+
+**Consequences (validated in exp1b).** Within this ratio-estimator model, value-aware
+weighting **cannot improve the conditional-mean (Bellman-target) value prediction**: it
+adds a variance penalty `sigma_w^2 Var(V)/n` and a bias term `Cov(w, V)^2`. Both grow
+when the weight estimator is noisy (sparse reward -> high-variance `V_hat` -> large
+`sigma_w^2`). In the tabular suite with the **uncapacitated empirical model**, the
+Bellman risk of the estimated-weight model is at or above MLE in **100%** of swept
+regimes, and the estimated-weight model is usually worse than the oracle-weight model
+-- isolating weight-estimator noise.
+
+> **Scope limit (found in exp1b, capacity-limited runs).** The theorem is a statement
+> about estimating `E[V]` at a fixed `(s, a)` with a *fixed* weighted estimator. It does
+> **not** extend to reweighted fitting of a *finite-capacity* model: there the weights
+> change which directions the model represents, and the estimated-weight model has
+> *lower* Bellman risk than MLE in roughly half of the capacity-limited regimes
+> (50% VaGraM, 33% VAML-1). "MLE dominates prediction risk" is therefore a property of
+> the uncapacitated estimator, not of capacity-limited model learning.
 
 ---
 
@@ -116,7 +138,7 @@ estimator `E_{P_hat_w}[Y]` gives, to first order,
 ```
 R_dec(P_hat_w) - R_dec(P_hat_MLE)
     = [ (grad V * Cov(w, Y))^2 ]                       (value-relevance signal)
-      - ||grad V||^2 * sigma_w^2 * E[||Y||^2] / n      (weight-noise penalty)
+      - ||grad V||^2 * sigma_w^2 * Var(||Y||) / n      (weight-noise penalty)
       + (weight-estimator bias term from w_hat = w(V_hat, grad V_hat))
 ```
 

@@ -1,6 +1,7 @@
 # Paper Outline (RESEARCH_PLAN.md Sec. 7)
 
-Draft v1 written: `paper/draft_v1.md` (Phase 1d).
+Draft v1: `paper/draft_v1.md` (superseded). Corrected tabular revision: `paper/draft_v2.md`
+(all numbers from committed `runs/`, 10 seeds).
 
 1. Introduction — objective mismatch, value-aware learning, the missing diagnostic.
 2. Background & Related Work — Lambert; VAML/IterVAML; VaGraM; CVAML; MOBILE; decision-aware taxonomy.
@@ -15,28 +16,27 @@ Draft v1 written: `paper/draft_v1.md` (Phase 1d).
 
 Full statements and proofs: `paper/notes/theory.md`.
 
-## Empirical results (Phase 1a/1b, tabular suite)
+## Empirical results (Phase 1a/1b, tabular suite — revised)
 
-- Lemma 1: `|delta_TD| ~ ||grad V|| * eps * |cos phi|` holds with R^2 = 0.99 (dense),
-  0.83 (sparse reward); curvature residual is the gap (exp2 part A).
-- Theorem 1: MLE dominates the Bellman/prediction risk; oracle weights beat estimated
-  weights, isolating weight-estimator noise (exp1b, exp2 part B).
-- Decision crossover: value-aware weighting restores policy-gradient alignment under
-  goal coverage + sparse reward where MLE misguides the policy (cos ~ 0 or negative);
-  value-aware collapses where SNR_w / ESS collapse (uniform coverage, dense reward).
-- `SNR_w` is a positive-but-noisy predictor of the alignment delta.
+- Lemma 1 (uncapacitated `runs/exp2`): `|delta_TD| ~ ||grad V|| * eps * |cos phi|`
+  holds with R^2 = 0.98 (dense), 0.76-0.81 (sparse); invariant to `d_d` because
+  deterministic distractors are fit exactly and `grad_{s_d} V = 0`.
+- Lemma 1 (capacity-limited `runs/exp2_capacity`): `mean |cos phi|` falls 0.92 -> 0.46
+  and curvature residual rises with `d_d`; R^2 destabilizes (can go negative).
+- Theorem 1 (uncapacitated `runs/exp1b`, 48 regimes): estimated-weight Bellman risk
+  `>=` MLE in 100% of regimes; corrected penalty is `sigma_w^2 Var(V)/n`.
+- Theorem 1 scope (`runs/exp1b_capacity`, 12 regimes): dominance fails under a capacity
+  limit (est `>=` MLE in 50% VaGraM / 33% VAML-1).
+- Decision crossover: under capacity-limited + stochastic distractors, MLE alignment
+  collapses with `d_d` (`cos` 0.86 -> -0.08) and VAML-1/Lambert restore it; VaGraM
+  (gradient-only) is unstable (Exp 1, `runs/exp1_capacity`).
+- `SNR_w` remains a positive-but-noisy predictor (Pearson ~0.25-0.34).
 
 ## Phase 1c results (continuous Distractor-Gym, exp4)
 
-- Pendulum-v1 + chaotic/white-noise distractor dims, small MLP dynamics model,
-  MLE-MSE vs VaGraM projection loss `(grad r . (s_hat' - s'))^2`.
-- Pure projection loss (lam=1) is degenerate and fails to train a usable model —
-  reproducing VaGraM's documented divergence of naive value-aware losses.
-- With a bounded combination (lam=0.5) the model is stable and matches MLE on global
-  MSE, while improving the decision-relevant metrics when unpredictable stochastic
-  distractors consume capacity: value error 0.214 vs 0.306 (d_d=8) and 0.524 vs 0.674
-  (d_d=16); directional alignment 0.971/0.942 vs 0.952/0.905. Benefit grows with
-  distractor count and requires sufficient model capacity.
+**Withdrawn in the tabular revision.** Requires `torch`; the earlier projection loss was
+computed in mismatched raw vs standardized coordinates and must be fixed before re-running.
+
 
 ## Open items
 
