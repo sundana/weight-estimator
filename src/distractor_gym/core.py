@@ -23,7 +23,7 @@ class DistractorClass(str, Enum):
 
 @dataclass
 class RegimeConfig:
-    """Knobs swept across the mismatch phase diagram (RESEARCH_PLAN.md Sec. 3)."""
+    """Knobs swept across the mismatch phase diagram (WP1 Distractor-Gym)."""
 
     d_c: int = 2
     d_d: int = 8
@@ -31,24 +31,70 @@ class RegimeConfig:
     reward_sparsity: float = 1.0
     goal_radius: float | None = None
     transition_noise: float = 0.0
+    sigma_dist: float = 0.0
     model_capacity: float = 1.0
     seed: int = 0
 
 
 class DistractorDynamics:
-    """Dynamics for the reward-irrelevant state block ``s_d``."""
+    """Action-coupled dynamics for the reward-irrelevant state block ``s_d``.
 
-    def __init__(self, config: RegimeConfig, rng: np.random.Generator | None = None) -> None:
+    Implements the WP1 Distractor-Gym form ``s_d' = tanh(A s_d + B a + xi)`` for the
+    nonlinear class, with ``xi ~ N(0, sigma_dist^2 I)``. The linear class drops the
+    ``tanh`` and the stochastic class is an action-coupled random walk. The couplings
+    ``A`` (``d_d x d_d``) and ``B`` (``d_d x action_dim``) are fixed by the regime seed,
+    while the noise stream is re-seeded on every environment reset for replay.
+    """
+
+    def __init__(
+        self,
+        config: RegimeConfig,
+        action_dim: int = 0,
+        rng: np.random.Generator | None = None,
+    ) -> None:
         self.config = config
+        self.action_dim = int(action_dim)
         self.rng = rng if rng is not None else np.random.default_rng(config.seed)
-        self._matrix = self.rng.normal(size=(config.d_d, config.d_d)) / np.sqrt(config.d_d)
+        d = config.d_d
+        coupling = np.random.default_rng(config.seed + 101)
+        if d > 0:
+            self._matrix = coupling.normal(size=(d, d)) / np.sqrt(d)
+            self._action_matrix = (
+                coupling.normal(size=(d, self.action_dim)) / np.sqrt(max(self.action_dim, 1))
+                if self.action_dim > 0
+                else np.zeros((d, 0))
+            )
+        else:
+            self._matrix = np.zeros((0, 0))
+            self._action_matrix = np.zeros((0, self.action_dim))
 
-    def step(self, s_d: np.ndarray) -> np.ndarray:
+    def reseed(self, seed: int) -> None:
+        """Re-seed the distractor noise stream (couplings stay fixed)."""
+        self.rng = np.random.default_rng(seed)
+
+    def _drive(self, action: np.ndarray | None) -> np.ndarray:
+        if self.action_dim == 0 or action is None:
+            return np.zeros(self.config.d_d)
+        a = np.asarray(action, dtype=float).reshape(-1)
+        return self._action_matrix @ a
+
+    def _noise(self, scale: float) -> np.ndarray:
+        if scale <= 0.0:
+            return np.zeros(self.config.d_d)
+        return self.rng.normal(0.0, scale, size=self.config.d_d)
+
+    def step(self, s_d: np.ndarray, action: np.ndarray | None = None) -> np.ndarray:
         """Advance ``s_d`` by one step according to the configured dynamics class."""
-        if self.config.distractor_class == DistractorClass.LINEAR:
-            return s_d @ self._matrix.T
-        if self.config.distractor_class == DistractorClass.NONLINEAR:
-            return np.tanh(s_d @ self._matrix.T) * 1.5
-        if self.config.distractor_class == DistractorClass.STOCHASTIC:
-            return self.rng.normal(loc=s_d, scale=1.0)
-        raise ValueError(f"unknown distractor class: {self.config.distractor_class}")
+        if self.config.d_d == 0:
+            return np.zeros(0)
+        s_d = np.asarray(s_d, dtype=float).reshape(-1)
+        drive = self._drive(action)
+        sigma = float(self.config.sigma_dist)
+        cls = self.config.distractor_class
+        if cls == DistractorClass.NONLINEAR:
+            return np.tanh(s_d @ self._matrix.T + drive + self._noise(sigma))
+        if cls == DistractorClass.LINEAR:
+            return s_d @ self._matrix.T + drive + self._noise(sigma)
+        if cls == DistractorClass.STOCHASTIC:
+            return s_d + drive + self._noise(sigma if sigma > 0.0 else 1.0)
+        raise ValueError(f"unknown distractor class: {cls}")
