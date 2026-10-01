@@ -1,0 +1,17 @@
+\begin{table}[htbp]
+\centering
+\caption{Exp~1.1 deep policy-gradient alignment $\cos(g_{\text{true}}, g_{\text{model}})$ on the analytic Distractor-Gym (mean over seeds and $\sigma_{\text{dist}}$); random and medium-replay SAC datasets.}
+\label{tab:h11}
+\begin{tabular}{llcccc}
+\toprule
+Dataset & $d_d$ & mle & vagram & td-error & calibrated \\
+\midrule
+medium & 0 & +0.228 & +0.250 & +0.168 & +0.240 \\
+medium & 10 & -0.167 & -0.168 & +0.456 & -0.170 \\
+medium & 50 & +0.340 & +0.036 & -0.092 & +0.058 \\
+random & 0 & +0.789 & +0.792 & +0.788 & +0.798 \\
+random & 10 & +0.470 & +0.378 & +0.541 & +0.398 \\
+random & 50 & +0.299 & +0.742 & +0.485 & +0.323 \\
+\bottomrule
+\end{tabular}
+\end{table}

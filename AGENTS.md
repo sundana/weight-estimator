@@ -2,11 +2,11 @@
 
 Research scaffold, migrated to the WP1-WP4 plan in
 `C:\Users\USER\Documents\Obsidian Vault\Research Plan` (value-aware loss stabilization
-and scalability for MBRL). Current status: WP1 in progress — the tabular ground-truth
-suite, weighted losses, exact policy-gradient machinery, and theory notes are
-implemented; the deep Distractor-Gym (MuJoCo + torch) and VJP profiling stack under
-`deep/`/`profiling/` are scaffolded, and the deep baselines and remaining stubs are
-planned work.
+and scalability for MBRL). Current status: **WP1 complete** — the tabular ground-truth
+suite, weighted losses, exact policy-gradient machinery, the deep Distractor-Gym
+(MuJoCo + torch), the deep Exp 1.1 gradient-alignment diagnostic, and the Exp 1.2 VJP
+profiling harness are implemented and committed (`paper/notes/wp1_report.md`). WP2-WP4
+(coupled-stability theory, scaling/latent/goal-conditioned, synthesis) are planned work.
 
 ## Run / verify
 
@@ -25,8 +25,11 @@ planned work.
 - `src/distractor_gym/deep/` — torch model-learning stack (nets, VJP, offline training)
   for the WP1 deep diagnostics; imports torch lazily
 - `src/distractor_gym/profiling/` — per-sample VJP hardware profiling harness (WP1 Exp 1.2)
-- `experiments/` — Exp 1-3 + 1b + 4 entry points; `configs/*.yaml` feed them (keep
-  knobs in sync); `paper/notes/theory.md` states Lemma 1, Theorems 1-3
+- `experiments/` — tabular (exp1/1b/2/3/5), deep (`exp1_deep_alignment`), and profiling
+  (`exp1_profiling`) entry points; `configs/*.yaml` feed them (keep knobs in sync);
+  `experiments/report.py` writes `paper/tables/*.tex` from committed `runs/`
+- `paper/notes/theory.md` states Lemma 1, Theorems 1-3; `paper/notes/wp1_report.md`
+  records WP1 results (H1.1/H1.2/H1.3)
 - `paper/notes/outline.md` — paper outline + open items
 
 ## Conventions

@@ -74,12 +74,14 @@ scaling fix. The deep-baseline benchmark (MBPO/VaGraM/DreamerV3/TD-MPC2, Phase 1
 needs `mbrl-lib` + `dm_control` provisioning and remains planned work
 (`NotImplementedError`).
 
-### WP1 migration
+### WP1 (complete)
 
-The repo is being migrated to the WP1-WP4 plan. The tabular suite is retained as the
-ground-truth lab; WP1 adds the deep Distractor-Gym over MuJoCo and the per-sample VJP
-profiling harness. `src/distractor_gym/deep/` (nets, VJP, offline training) and
-`src/distractor_gym/profiling/` (Exp 1.2) are scaffolded. Optional extras:
+The repo is migrated to the WP1-WP4 plan. The tabular suite is retained as the
+ground-truth lab (H1.2); `src/distractor_gym/deep/` holds the deep Distractor-Gym
+(MuJoCo + analytic), the weighted model losses, and Exp 1.1 policy-gradient alignment;
+`src/distractor_gym/profiling/` holds the Exp 1.2 per-sample VJP profiling harness.
+`experiments/report.py` generates `paper/tables/*.tex` from the committed `runs/`.
+Results are summarised in `paper/notes/wp1_report.md`. Optional extras:
 `pip install -e ".[mujoco,stats]"` for `gymnasium[mujoco]` + `rliable`. Profiling runs on
-the local RTX 5060 Ti; the plan's A100/4090 numbers are reported as relative overhead
-ratios.
+the local RTX 5060 Ti (H1.3 exact VJP fails, stale caching passes); the plan's A100/4090
+numbers are reported as relative overhead ratios.

@@ -1,7 +1,12 @@
-# Paper Outline (RESEARCH_PLAN.md Sec. 7)
+# Paper Outline
 
-Draft v1: `paper/draft_v1.md` (superseded). Corrected tabular revision: `paper/draft_v2.md`
-(all numbers from committed `runs/`, 10 seeds).
+Now aligned to the WP1-WP4 plan in
+`C:\Users\USER\Documents\Obsidian Vault\Research Plan` (value-aware loss stabilization
+and scalability for MBRL). WP1 status and results: `paper/notes/wp1_report.md`.
+Generated tables: `paper/tables/` (via `experiments/report.py`).
+
+Historical: `paper/draft_v1.md` (superseded) and the corrected tabular revision
+`paper/draft_v2.md` (the pre-WP1 diagnostic-paper narrative, retained for reference).
 
 1. Introduction — objective mismatch, value-aware learning, the missing diagnostic.
 2. Background & Related Work — Lambert; VAML/IterVAML; VaGraM; CVAML; MOBILE; decision-aware taxonomy.

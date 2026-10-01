@@ -1,0 +1,17 @@
+\begin{table}[htbp]
+\centering
+\caption{Exp~1.2 VJP overhead relative to the forward MLE baseline on the local RTX 5060 Ti. H1.3 (exact VJP $\le 2.2\times$ at batch $\ge 512$): FAIL (max $10.0\times$); stale caching ($K=10$) stays below the threshold.}
+\label{tab:h13}
+\begin{tabular}{lrrrrrr}
+\toprule
+Scheme & 64 & 128 & 256 & 512 & 1024 & 2048 \\
+\midrule
+mle-forward & 1.00 & 1.00 & 1.00 & 1.00 & 1.00 & 1.00 \\
+vjp-exact & 8.31 & 8.72 & 6.49 & 8.32 & 7.14 & 10.03 \\
+stale-K5 & 1.63 & 1.54 & 1.35 & 1.38 & 1.51 & 1.66 \\
+stale-K10 & 0.87 & 0.68 & 0.74 & 0.71 & 0.68 & 0.86 \\
+stale-K50 & 0.15 & 0.23 & 0.12 & 0.13 & 0.16 & 0.19 \\
+finite-diff & 198.62 & 221.08 & 141.69 & 207.60 & 175.14 & 195.12 \\
+\bottomrule
+\end{tabular}
+\end{table}
