@@ -14,17 +14,20 @@
 \title{When and Why Does Value-Aware Model Learning Fail?\\
   \large A Diagnostic Suite for Objective Mismatch in Model-Based Reinforcement Learning}
 \author{Firmansyah Sundana, Novanto Yudistira}
-\date{Draft v2 (tabular revision)}
+\date{WP1 revision}
 
 \begin{document}
 \maketitle
 
 \begin{center}
-\textbf{Status:} Draft v2 (tabular revision), superseding Draft v1. All numbers are
+\textbf{Status:} WP1 revision, superseding the tabular-only Draft~v2. All numbers are
 produced by the committed runs under \texttt{runs/} (each with a \texttt{manifest.json}
-pinning the config, git SHA, and library versions) at 10 seeds. The continuous neural
-transfer (Exp~4) was \emph{not} re-run in this revision and its earlier numbers are
-withdrawn pending a \texttt{torch} provisioning and a coordinate-scaling fix.
+pinning the config, git SHA, and library versions). The work is aligned to the WP1--WP4
+plan (value-aware loss stabilization and scalability for MBRL); WP1 --- the
+weight-estimator theory, mismatch diagnostics, and VJP profiling --- is complete and
+summarised in \texttt{paper/notes/wp1\_report.md}. The continuous neural transfer
+(Exp~4) is superseded by the analytic Exp~1.1 of Sec.~\ref{sec:exp11-deep}; its earlier
+numbers remain withdrawn.
 \end{center}
 
 \begin{abstract}
@@ -54,7 +57,11 @@ $0.86$ at $d_d=0$ to $-0.08$ at $d_d=2$), while value-aware weighting --- especi
 VAML-1/Lambert --- restores it (to $0.16$--$0.34$), whereas gradient-only VaGraM does
 not; and (c)~the prediction-risk dominance of MLE is confined to the uncapacitated
 estimator (estimated-weight Bellman risk $\ge$ MLE in $100\%$ of uncapacitated regimes)
-and fails for capacity-limited fitting ($50\%$/$33\%$ for VaGraM/VAML-1).
+and fails for capacity-limited fitting ($50\%$/$33\%$ for VaGraM/VAML-1). For depth we
+add (iv)~WP1 diagnostics on a differentiable analytic Distractor-Gym --- an exact
+policy-gradient alignment measurement (Exp~1.1) and a per-sample VJP profiling harness
+(Exp~1.2). The deep alignment degrades with the distractor count, and exact online VJP is
+dispatch-bound on commodity hardware, where stale-weight caching recovers the overhead.
 \end{abstract}
 
 \section{Introduction}
@@ -101,6 +108,11 @@ This revision makes the following contributions:
   $\lvert\delta_{\mathrm{TD}}\rvert \sim \lVert \nabla V\rVert \cdot \varepsilon_{\mathrm{model}}$
   decomposition, measured with clean i.i.d.\ coverage and 10 seeds, with committed
   artifacts.
+\item \textbf{Deep diagnostics and profiling (WP1).} An exact policy-gradient alignment
+  experiment on a differentiable analytic Distractor-Gym (Exp~1.1) and a per-sample VJP
+  profiling harness comparing exact \texttt{torch.func} VJP, stale-weight caching, finite
+  differences, and the forward MLE baseline (Exp~1.2), with committed artifacts and the
+  H1.1--H1.3 hypotheses tested.
 \end{enumerate}
 
 \textbf{Findings.}
@@ -110,6 +122,9 @@ is dominated by any estimated weighting.
 while VAML-1/Lambert restore it; gradient-only VaGraM is unstable.
 (c)~The value-aware benefit is decision-level (alignment) and does not require lower
 Bellman risk --- the two diverge under capacity limits.
+(d)~Deep (WP1): exact policy-gradient alignment (Exp~1.1) degrades with the distractor
+count on random data and is mixed on medium-replay SAC; exact per-sample VJP (Exp~1.2) is
+dispatch-bound on commodity hardware, where stale-weight caching recovers the overhead.
 
 \section{Background and Related Work}
 
@@ -129,9 +144,11 @@ adds adaptive MLE+value weighting for offline RL. MOBILE~\cite{sun2023mobile} us
 model-Bellman inconsistency for offline pessimism.
 
 \textbf{Diagnostics.} Lambert et~al.~\cite{lambert2020objective} measured the correlation
-between one-step likelihood and return. We modernize this: our diagnostics are per-run,
-quantitative, and cover gradient alignment and the value-error decomposition, ported
-(Phase~2) to MBPO, DreamerV3, TD-MPC2, and VaGraM.
+between one-step likelihood and return. We modernize this: our diagnostics are per-run
+and quantitative, covering policy-gradient alignment (tabular and, in WP1, an exact
+deep measurement on a differentiable analytic Distractor-Gym), the value-error
+decomposition, and a hardware profile of per-sample VJP computation. Porting the
+diagnostics to MBPO, DreamerV3, TD-MPC2, and VaGraM remains planned work (WP3).
 
 \section{Theory: The Weight Estimator \texorpdfstring{$w$}{w}}
 \label{sec:theory}
@@ -171,6 +188,10 @@ $\cos\phi$ distribution dominates. \emph{Empirical check (Exp~2 Part A):}
 $R^2 = 0.98$ (dense) and $0.76$--$0.81$ (sparse step-function value) with the
 uncapacitated model; the fit is invariant to $d_d$ there, and degrades with $d_d$ under
 a capacity limit ($\mathrm{mean}\,\lvert\cos\phi\rvert$ falls from $0.92$ to $0.46$).
+The H1.2 rank statistic --- the Spearman correlation between $\lvert\delta_{\mathrm{TD}}\rvert$
+and the Cauchy--Schwarz product $\lVert\nabla V\rVert\,\lVert e\rVert$ --- is
+$\rho \approx 0.999$ in all 12 uncapacitated regimes ($\rho > 0.8$), so the first-order
+product is rank-faithful there; see Table~\ref{tab:h12}.
 
 \begin{theorem}[prediction risk of the weighted ratio estimator]
 \label{thm:pred}
@@ -244,11 +265,13 @@ value gradient,
 \end{equation}
 Applying Theorem~\ref{thm:pred} to the vector estimator gives
 \begin{equation}
+\begin{aligned}
   R_{\mathrm{dec}}(\hat{P}_w) - R_{\mathrm{dec}}(\hat{P}_{\mathrm{MLE}})
-  = \underbrace{\left(\nabla V \cdot \mathrm{Cov}(w, Y)\right)^2}_{\text{value-relevance signal}}
-    - \underbrace{\lVert \nabla V\rVert^2\, \sigma_w^2\,
-       \frac{\mathrm{Var}(\lVert Y\rVert)}{n}}_{\text{weight-noise penalty}}
-    + \underbrace{\text{(weight-estimator bias term)}}_{\text{bias}}.
+  ={}& \underbrace{\left(\nabla V \cdot \mathrm{Cov}(w, Y)\right)^2}_{\text{value-relevance signal}}
+      - \underbrace{\lVert \nabla V\rVert^2\, \sigma_w^2\,
+        \frac{\mathrm{Var}(\lVert Y\rVert)}{n}}_{\text{weight-noise penalty}} \\
+     &+ \underbrace{\text{(weight-estimator bias term)}}_{\text{bias}}.
+\end{aligned}
 \end{equation}
 \end{theorem}
 
@@ -327,28 +350,10 @@ $d_d = 2$: MLE $0.91$, VAML-1 $-0.65$).
 Here distractors do the work: MLE alignment collapses with $d_d$, while VAML-1/Lambert
 recover it and gradient-only VaGraM does not.
 
-\begin{table}[htbp]
-\centering
-\caption{Policy-gradient alignment $\cos(g_{\text{true}}, g_{\mathrm{model}})$ under the
-capacity-limited model with stochastic distractors (averaged over 10 seeds).}
-\label{tab:exp1}
-\begin{tabular}{llcccc}
-\toprule
-Regime & $d_d$ & MLE & VAML-1 & VaGraM & Lambert \\
-\midrule
-dense, uniform  & 0 & 0.86 & 0.84 & 0.86 & 0.86 \\
-dense, uniform  & 1 & 0.82 & 0.78 & 0.82 & 0.67 \\
-dense, uniform  & 2 & $-0.08$ & $-0.15$ & $-0.45$ & 0.13 \\
-dense, goal     & 2 & $-0.09$ & 0.34 & $-0.09$ & 0.47 \\
-sparse, uniform & 2 & $-0.22$ & 0.16 & $-0.14$ & 0.11 \\
-sparse, goal    & 2 & 0.32 & 0.62 & 0.34 & 0.28 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
 The pattern matches Theorem~\ref{thm:crossover}: VaGraM's weight
 $\lVert \nabla V\rVert$ ignores $\cos\phi$ and the curvature residual, both of which
-degrade with $d_d$ (Exp~2 Part A), while VAML-1/Lambert are better behaved.
+degrade with $d_d$ (Exp~2 Part A), while VAML-1/Lambert are better behaved
+(Table~\ref{tab:exp1}).
 
 \input{tables/exp1_alignment.tex}
 
@@ -369,27 +374,15 @@ degrade with $d_d$ (Exp~2 Part A), while VAML-1/Lambert are better behaved.
   address.
 \end{itemize}
 
+\input{tables/h12_lemma.tex}
+
 \textbf{Part B (weight estimator vs policy effects), capacity-limited
 (\texttt{runs/exp2\_capacity}).} At $d_d = 2$, VAML-1 has higher alignment than MLE
 while VaGraM is unstable.
 
-\begin{table}[htbp]
-\centering
-\caption{Capacity-limited policy-gradient alignment at $d_d = 2$.}
-\label{tab:exp2b}
-\begin{tabular}{lccc}
-\toprule
-Regime & MLE & VAML-1 (est.) & VaGraM (est.) \\
-\midrule
-dense, uniform  & $-0.12$ & 0.22 & $-0.81$ \\
-sparse, uniform & $-0.19$ & 0.32 & $-0.15$ \\
-sparse, goal    & 0.09 & 0.47 & 0.09 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
 The value-aware benefit is decision-level (alignment) and does not require lower
-Bellman risk --- consistent with Theorem~\ref{thm:crossover}.
+Bellman risk --- consistent with Theorem~\ref{thm:crossover}. Table~\ref{tab:exp2b}
+reports the estimated-vs-oracle breakdown at $d_d = 2$.
 
 \input{tables/exp2_oracle.tex}
 
@@ -428,14 +421,51 @@ value-aware weighting wins; raising capacity removes the pressure.
 
 \input{tables/exp1b_scope.tex}
 
-\section{Experiment 4: Continuous Neural Transfer}
+\section{Experiment 1.1 (deep): Policy-Gradient Alignment}
+\label{sec:exp11-deep}
 
-\textbf{Withdrawn in this revision.} The earlier numbers (pure projection
-$\lambda = 1$ diverging; bounded $\lambda = 0.5$ improving value error and directional
-alignment) were produced with reward gradients as a value proxy and a projection loss
-computed in mismatched raw vs.\ standardized coordinates. The experiment requires
-\texttt{torch} (not installed in the environment that produced the committed artifacts)
-and must be fixed and re-run before it can be reported.
+MuJoCo dynamics are not differentiable, so the true policy gradient cannot be obtained
+by back-propagating through the real environment. We therefore build a
+\emph{differentiable analytic} Distractor-Gym (\texttt{deep/analytic.py}) with the same
+structure as the tabular suite --- a 2D damped double integrator stabilizing a goal plus
+an action-coupled, reward-irrelevant distractor block --- for which $g_{\text{true}}$ is
+the exact rollout gradient and $g_{\text{model}}$ substitutes the fitted ensemble.
+Datasets are random-policy rollouts and medium-replay SAC
+(\texttt{runs/exp1\_deep\_alignment}, 96 rows).
+
+\input{tables/h11_alignment.tex}
+
+On random data, alignment is high at $d_d = 0$ ($\cos \approx 0.79$ for every family)
+and degrades with $d_d$ ($0.30$--$0.74$ at $d_d = 50$); on medium-replay SAC data it is
+lower and mixed, sometimes negative, and no family dominates across distractor counts.
+The H1.1 \emph{policy-return} claim ($\ge 40\%$ MLE degradation) is deferred to the full
+model-based training loop (WP2/WP3); this section reports the gradient diagnostic.
+
+\section{Experiment 1.2: Per-Sample VJP Profiling}
+\label{sec:exp12-profiling}
+
+We profile the per-sample value gradient $\lVert \nabla_s V(s')\rVert$ over batch sizes
+$\{64, 128, 256, 512, 1024, 2048\}$ and four schemes: exact online
+\texttt{torch.func.vmap(grad)}, stale-weight caching (refresh every $K \in \{5, 10, 50\}$),
+central finite differences, and the forward MLE baseline
+(\texttt{runs/exp1\_profiling}). On the local RTX~5060~Ti the exact VJP is
+\emph{dispatch-bound} ($\sim 1$\,ms per call, roughly flat in batch), giving a
+$5$--$10\times$ overhead over the forward pass and \textbf{failing H1.3} ($\le 2.2\times$
+at batch $\ge 512$). Stale caching recovers it: $K = 10$ stays at $\sim 0.7$--$0.9\times$
+and $K = 50$ at $\sim 0.1$--$0.2\times$; finite differences cost $140$--$220\times$ and
+are not viable. This matches the plan's fallback (stale caching or a TD-error surrogate);
+the plan's A100/4090 target is not available, so the overhead ratio is the reportable
+quantity (Table~\ref{tab:h13}).
+
+\input{tables/h13_overhead.tex}
+
+\section{Experiment 4: Continuous Neural Transfer (superseded)}
+
+\textbf{Superseded by Exp~1.1 (Sec.~\ref{sec:exp11-deep}).} The earlier continuous
+neural transfer used reward gradients as a value proxy and a projection loss computed in
+mismatched raw vs.\ standardized coordinates. \texttt{torch} is now installed, and the
+analytic Exp~1.1 provides the corrected deep diagnostic; the original Exp~4 numbers
+remain withdrawn.
 
 \section{Discussion}
 
@@ -466,9 +496,14 @@ value-aware weighting is not helping; the model is in the MLE-optimal regime.
   $\tau$ remains open work.
 \item The phase diagram (Fig.~\ref{fig:phase}) has some seed-sensitive cells at larger
   capacity; more seeds and a finer capacity sweep are needed to tighten it.
-\item The tabular results are stylized. The continuous transfer (Exp~4) was not re-run:
-  \texttt{torch} is uninstalled and the projection loss was computed in mismatched
-  coordinates; that experiment is withdrawn until fixed.
+\item The tabular results are stylized. The continuous transfer (Exp~4) is superseded by
+  the analytic Exp~1.1; the original raw vs.\ standardized coordinate bug is removed by
+  construction, and the earlier Exp~4 numbers stay withdrawn.
+\item The Exp~1.1 deep diagnostic measures policy-gradient \emph{alignment}, not policy
+  \emph{return}; the H1.1 return claim needs the full model-based training loop.
+\item The Exp~1.2 profiling runs on a local RTX~5060~Ti, not the plan's A100/4090, so it
+  reports the VJP overhead ratio rather than absolute throughput; exact VJP fails H1.3 on
+  this setup while stale-weight caching meets it.
 \item The distractor bandwidth/capacity interaction is sensitive; more seeds and a
   systematic capacity sweep are needed to tighten the phase diagram.
 \item Phase~2: the diagnostics must be ported to MBPO, DreamerV3, TD-MPC2, and VaGraM
