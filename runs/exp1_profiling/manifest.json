@@ -1,0 +1,31 @@
+{
+  "git_sha": "9973f0ea94875945383197c2cfb9358f7311be88",
+  "config": {
+    "seed": 0,
+    "device": "auto",
+    "obs_dim": 64,
+    "hidden": 256,
+    "n_layers": 2,
+    "batch_sizes": [
+      64,
+      128,
+      256,
+      512,
+      1024,
+      2048
+    ],
+    "iters": 50,
+    "warmup": 10,
+    "fd_iters": 3,
+    "fd_eps": 0.001,
+    "stale_k": [
+      5,
+      10,
+      50
+    ],
+    "threshold": 2.2,
+    "batch_threshold": 512
+  },
+  "python": "3.12.9",
+  "numpy": "2.4.6"
+}

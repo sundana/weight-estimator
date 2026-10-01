@@ -1,0 +1,14 @@
+{
+  "hypothesis": "H1.3",
+  "pass": false,
+  "threshold": 2.2,
+  "batch_threshold": 512,
+  "max_overhead": 10.02827046112872,
+  "ratios": [
+    8.317049645588517,
+    7.143581394335951,
+    10.02827046112872
+  ],
+  "stale_K10_max_overhead": 0.8725168683432454,
+  "fallback": "stale-weight caching (K>=5) or TD-error surrogate per the WP1 plan"
+}

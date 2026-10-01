@@ -1,0 +1,326 @@
+[
+  {
+    "scheme": "mle_forward",
+    "batch": 64,
+    "ms_per_step": 0.11648600004264154,
+    "throughput": 549422.247966037,
+    "peak_mem_mb": 10.17856,
+    "tflops": 0.09029864529771413,
+    "overhead_vs_forward": 1.0
+  },
+  {
+    "scheme": "vjp_exact",
+    "batch": 64,
+    "ms_per_step": 0.9675260000221897,
+    "throughput": 66148.09317634068,
+    "peak_mem_mb": 19.55072,
+    "tflops": 0.021743142819435887,
+    "overhead_vs_forward": 8.305942342152804
+  },
+  {
+    "scheme": "finite_diff",
+    "batch": 64,
+    "ms_per_step": 23.136999998920754,
+    "throughput": 2766.132169381741,
+    "peak_mem_mb": 54.105088,
+    "tflops": 0.05819127735068517,
+    "overhead_vs_forward": 198.62472735308182
+  },
+  {
+    "scheme": "stale_K5",
+    "batch": 64,
+    "ms_per_step": 0.18961800000397488,
+    "throughput": 337520.6995045744,
+    "peak_mem_mb": 20.551168,
+    "tflops": 0.11094440400995163,
+    "overhead_vs_forward": 1.6278179346407484
+  },
+  {
+    "scheme": "stale_K10",
+    "batch": 64,
+    "ms_per_step": 0.10163599996303674,
+    "throughput": 629698.1386838885,
+    "peak_mem_mb": 21.551616,
+    "tflops": 0.20698429697794887,
+    "overhead_vs_forward": 0.8725168683432454
+  },
+  {
+    "scheme": "stale_K50",
+    "batch": 64,
+    "ms_per_step": 0.017902000035974197,
+    "throughput": 3575019.543704142,
+    "peak_mem_mb": 22.552064,
+    "tflops": 1.1751232240937262,
+    "overhead_vs_forward": 0.15368370473207843
+  },
+  {
+    "scheme": "mle_forward",
+    "batch": 128,
+    "ms_per_step": 0.1303840000036871,
+    "throughput": 981715.5478922284,
+    "peak_mem_mb": 18.976768,
+    "tflops": 0.1613469137271835,
+    "overhead_vs_forward": 1.0
+  },
+  {
+    "scheme": "vjp_exact",
+    "batch": 128,
+    "ms_per_step": 1.1369700000068406,
+    "throughput": 112579.92735008828,
+    "peak_mem_mb": 20.681216,
+    "tflops": 0.03700547243968342,
+    "overhead_vs_forward": 8.720165050732362
+  },
+  {
+    "scheme": "finite_diff",
+    "batch": 128,
+    "ms_per_step": 28.824700000162313,
+    "throughput": 4440.63598230959,
+    "peak_mem_mb": 89.78944,
+    "tflops": 0.09341790783546185,
+    "overhead_vs_forward": 221.0754386991286
+  },
+  {
+    "scheme": "stale_K5",
+    "batch": 128,
+    "ms_per_step": 0.20136599996476434,
+    "throughput": 635658.4528788268,
+    "peak_mem_mb": 22.681088,
+    "tflops": 0.20894347609508188,
+    "overhead_vs_forward": 1.5444072889240241
+  },
+  {
+    "scheme": "stale_K10",
+    "batch": 128,
+    "ms_per_step": 0.0890820000495296,
+    "throughput": 1436878.3809168183,
+    "peak_mem_mb": 24.68096,
+    "tflops": 0.47230767132088186,
+    "overhead_vs_forward": 0.6832280037965583
+  },
+  {
+    "scheme": "stale_K50",
+    "batch": 128,
+    "ms_per_step": 0.030381999968085438,
+    "throughput": 4213020.872044524,
+    "peak_mem_mb": 26.680832,
+    "tflops": 1.384836812724523,
+    "overhead_vs_forward": 0.23301938863070829
+  },
+  {
+    "scheme": "mle_forward",
+    "batch": 256,
+    "ms_per_step": 0.16656399995554239,
+    "throughput": 1536946.759613896,
+    "peak_mem_mb": 19.534336,
+    "tflops": 0.25260027383606304,
+    "overhead_vs_forward": 1.0
+  },
+  {
+    "scheme": "vjp_exact",
+    "batch": 256,
+    "ms_per_step": 1.081214000005275,
+    "throughput": 236770.88901803995,
+    "peak_mem_mb": 22.943232,
+    "tflops": 0.0778275383037858,
+    "overhead_vs_forward": 6.4912826318644
+  },
+  {
+    "scheme": "finite_diff",
+    "batch": 256,
+    "ms_per_step": 23.600233334339766,
+    "throughput": 10847.350378841575,
+    "peak_mem_mb": 161.15968,
+    "tflops": 0.2281963173713114,
+    "overhead_vs_forward": 141.6886802708803
+  },
+  {
+    "scheme": "stale_K5",
+    "batch": 256,
+    "ms_per_step": 0.2243639999505831,
+    "throughput": 1141003.0132123907,
+    "peak_mem_mb": 26.942976,
+    "tflops": 0.3750522544549657,
+    "overhead_vs_forward": 1.3470137605393009
+  },
+  {
+    "scheme": "stale_K10",
+    "batch": 256,
+    "ms_per_step": 0.12272200001461897,
+    "throughput": 2086015.5470861346,
+    "peak_mem_mb": 30.94272,
+    "tflops": 0.6856816543894008,
+    "overhead_vs_forward": 0.7367858603742388
+  },
+  {
+    "scheme": "stale_K50",
+    "batch": 256,
+    "ms_per_step": 0.0195240000175545,
+    "throughput": 13112067.18755502,
+    "peak_mem_mb": 34.942464,
+    "tflops": 4.309988932818086,
+    "overhead_vs_forward": 0.11721620531907045
+  },
+  {
+    "scheme": "mle_forward",
+    "batch": 512,
+    "ms_per_step": 0.14100000000325963,
+    "throughput": 3631205.673674919,
+    "peak_mem_mb": 20.649472,
+    "tflops": 0.5967959148798203,
+    "overhead_vs_forward": 1.0
+  },
+  {
+    "scheme": "vjp_exact",
+    "batch": 512,
+    "ms_per_step": 1.1727040000550915,
+    "throughput": 436597.81153295905,
+    "peak_mem_mb": 27.467264,
+    "tflops": 0.14351144704212976,
+    "overhead_vs_forward": 8.317049645588517
+  },
+  {
+    "scheme": "finite_diff",
+    "batch": 512,
+    "ms_per_step": 29.271166667361587,
+    "throughput": 17491.615753426686,
+    "peak_mem_mb": 303.90016,
+    "tflops": 0.36797210013531934,
+    "overhead_vs_forward": 207.59692671407728
+  },
+  {
+    "scheme": "stale_K5",
+    "batch": 512,
+    "ms_per_step": 0.1942379999672994,
+    "throughput": 2635941.474305732,
+    "peak_mem_mb": 35.466752,
+    "tflops": 0.8664445063701914,
+    "overhead_vs_forward": 1.3775744678213406
+  },
+  {
+    "scheme": "stale_K10",
+    "batch": 512,
+    "ms_per_step": 0.09959600000001956,
+    "throughput": 5140768.705569495,
+    "peak_mem_mb": 43.46624,
+    "tflops": 1.6897912365955154,
+    "overhead_vs_forward": 0.7063546099128872
+  },
+  {
+    "scheme": "stale_K50",
+    "batch": 512,
+    "ms_per_step": 0.017751999985193834,
+    "throughput": 28841820.6639836,
+    "peak_mem_mb": 51.465728,
+    "tflops": 9.480421819534062,
+    "overhead_vs_forward": 0.12590070911193932
+  },
+  {
+    "scheme": "mle_forward",
+    "batch": 1024,
+    "ms_per_step": 0.14004600001499057,
+    "throughput": 7311883.237581871,
+    "peak_mem_mb": 22.879744,
+    "tflops": 1.2017226338630556,
+    "overhead_vs_forward": 1.0
+  },
+  {
+    "scheme": "vjp_exact",
+    "batch": 1024,
+    "ms_per_step": 1.0004300000582589,
+    "throughput": 1023559.8691966141,
+    "peak_mem_mb": 36.515328,
+    "tflops": 0.3364482232444038,
+    "overhead_vs_forward": 7.143581394335951
+  },
+  {
+    "scheme": "finite_diff",
+    "batch": 1024,
+    "ms_per_step": 24.528233333209453,
+    "throughput": 41747.808987676995,
+    "peak_mem_mb": 589.38112,
+    "tflops": 0.8782509955510642,
+    "overhead_vs_forward": 175.144119293546
+  },
+  {
+    "scheme": "stale_K5",
+    "batch": 1024,
+    "ms_per_step": 0.21154000001843087,
+    "throughput": 4840692.067272298,
+    "peak_mem_mb": 52.514304,
+    "tflops": 1.5911548452806734,
+    "overhead_vs_forward": 1.510503691614095
+  },
+  {
+    "scheme": "stale_K10",
+    "batch": 1024,
+    "ms_per_step": 0.09519999999611173,
+    "throughput": 10756302.521447726,
+    "peak_mem_mb": 68.51328,
+    "tflops": 3.5356396640099526,
+    "overhead_vs_forward": 0.6797766447161754
+  },
+  {
+    "scheme": "stale_K50",
+    "batch": 1024,
+    "ms_per_step": 0.021839999972144142,
+    "throughput": 46886446.94624826,
+    "peak_mem_mb": 84.512256,
+    "tflops": 15.41176265701959,
+    "overhead_vs_forward": 0.15594875947764578
+  },
+  {
+    "scheme": "mle_forward",
+    "batch": 2048,
+    "ms_per_step": 0.11106999998446554,
+    "throughput": 18438822.36685367,
+    "peak_mem_mb": 27.340288,
+    "tflops": 3.030457333637134,
+    "overhead_vs_forward": 1.0
+  },
+  {
+    "scheme": "vjp_exact",
+    "batch": 2048,
+    "ms_per_step": 1.1138399999617832,
+    "throughput": 1838684.191688455,
+    "peak_mem_mb": 54.611456,
+    "tflops": 0.6043828485447619,
+    "overhead_vs_forward": 10.02827046112872
+  },
+  {
+    "scheme": "finite_diff",
+    "batch": 2048,
+    "ms_per_step": 21.671566665948678,
+    "throughput": 94501.70500215418,
+    "peak_mem_mb": 1160.34304,
+    "tflops": 1.9880376602257976,
+    "overhead_vs_forward": 195.11629304924557
+  },
+  {
+    "scheme": "stale_K5",
+    "batch": 2048,
+    "ms_per_step": 0.18486200002371334,
+    "throughput": 11078534.25656593,
+    "peak_mem_mb": 86.609408,
+    "tflops": 3.6415585242702475,
+    "overhead_vs_forward": 1.6643738187590573
+  },
+  {
+    "scheme": "stale_K10",
+    "batch": 2048,
+    "ms_per_step": 0.09505999994871672,
+    "throughput": 21544287.829842854,
+    "peak_mem_mb": 118.60736,
+    "tflops": 7.081693586820665,
+    "overhead_vs_forward": 0.8558566666247591
+  },
+  {
+    "scheme": "stale_K50",
+    "batch": 2048,
+    "ms_per_step": 0.020946000004187226,
+    "throughput": 97775231.52824372,
+    "peak_mem_mb": 150.605312,
+    "tflops": 32.13910970425982,
+    "overhead_vs_forward": 0.18858377606119361
+  }
+]
