@@ -1,0 +1,22 @@
+seed: 0
+gamma: 0.99
+horizon: 8
+n_starts: 64
+n_seeds: 2
+d_d_list: [0, 10, 50]
+sigma_dist_list: [0.0, 0.3]
+loss_families: [mle, vagram, td_error, calibrated]
+
+random_steps: 2000
+sac_steps: 2000
+sac_start_steps: 400
+sac_update_after: 400
+sac_update_every: 50
+sac_batch_size: 128
+
+hidden: 64
+n_layers: 2
+n_models: 3
+epochs: 30
+critic_epochs: 30
+batch_size: 256

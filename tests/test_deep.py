@@ -3,6 +3,7 @@ import pytest
 
 torch = pytest.importorskip("torch")
 
+from distractor_gym.deep.analytic import AnalyticDistractorEnv
 from distractor_gym.deep.losses import model_weights, self_normalize, weighted_mse
 from distractor_gym.deep.nets import GaussianEnsemble, StateValue, SquashedGaussianActor, TwinCritic
 from distractor_gym.deep.sac import ReplayBuffer, SACAgent, collect_random
@@ -144,3 +145,40 @@ def test_collect_random_smoke():
     buf = collect_random(env, n_steps=20, seed=0)
     assert len(buf) == 20
     assert buf.obs.shape == (20, 3)
+
+
+def test_analytic_env_step_control_formula():
+    env = AnalyticDistractorEnv(d_d=0)
+    s = torch.tensor([[1.0, 2.0]])
+    a = torch.tensor([[0.5]])
+    s2 = env.step(s, a)
+    expected = torch.tensor([[1.0 + 0.1 * 2.0, 2.0 + 0.1 * (0.5 - 0.5 * 2.0)]])
+    assert torch.allclose(s2, expected)
+
+
+def test_analytic_env_reward_flat_in_distractor():
+    env = AnalyticDistractorEnv(d_d=3)
+    a = torch.zeros(1, 1)
+    base = torch.zeros(1, 5)
+    perturbed = base.clone()
+    perturbed[0, 3:] = 7.0
+    assert torch.allclose(env.reward(base, a), env.reward(perturbed, a))
+
+
+def test_deep_alignment_gradient_cosine_smoke():
+    import pathlib
+    import sys
+
+    sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
+    from experiments.exp1_deep_alignment import _random_data, gradient_cosine, policy_gradient
+
+    env = AnalyticDistractorEnv(d_d=3, sigma_dist=0.0, seed=0)
+    actor = SACAgent(obs_dim=env.dim, act_dim=1, hidden=16).actor
+    s0 = env.sample_states(8)
+    g_true = policy_gradient(env, actor, s0, horizon=4, gamma=0.99)
+    assert g_true.norm() > 0.0
+    data = _random_data(env, 256, seed=0)
+    fd = fit_dynamics(data, LossFamily.MLE, n_models=2, hidden=16, epochs=3, batch_size=64)
+    g_model = policy_gradient(env, actor, s0, horizon=4, gamma=0.99, fd=fd)
+    cos = gradient_cosine(g_true, g_model)
+    assert -1.0 <= cos <= 1.0

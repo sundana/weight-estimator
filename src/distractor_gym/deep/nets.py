@@ -133,3 +133,8 @@ class SquashedGaussianActor(nn.Module):
         log_prob = normal.log_prob(x) - torch.log1p(-action.pow(2) + 1e-6)
         log_prob = log_prob.sum(dim=-1, keepdim=True)
         return action, log_prob, torch.tanh(mean)
+
+    def deterministic(self, obs: torch.Tensor) -> torch.Tensor:
+        """Deterministic ``tanh(mean)`` action (differentiable in the actor parameters)."""
+        mean, _ = self(obs)
+        return torch.tanh(mean)

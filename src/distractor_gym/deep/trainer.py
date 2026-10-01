@@ -16,7 +16,7 @@ import torch
 
 from ..losses import LossFamily
 from .losses import self_normalize
-from .nets import GaussianEnsemble
+from .nets import GaussianEnsemble, StateValue
 
 
 @dataclass
@@ -69,6 +69,16 @@ class FittedDynamics:
         mean, _ = self.model(self._normalize_inputs(s, a))
         raw = self.y_scaler.inverse(mean.cpu().numpy())
         return raw.std(axis=1).mean(axis=-1)
+
+    def predict_torch(self, s: torch.Tensor, a: torch.Tensor) -> torch.Tensor:
+        """Differentiable ensemble-mean next state in raw coordinates, shape ``(batch, d)``."""
+        x = torch.cat([s, a], dim=-1)
+        mean = torch.as_tensor(self.x_scaler.mean, dtype=x.dtype, device=x.device)
+        std = torch.as_tensor(self.x_scaler.std, dtype=x.dtype, device=x.device)
+        y_mean = torch.as_tensor(self.y_scaler.mean, dtype=x.dtype, device=x.device)
+        y_std = torch.as_tensor(self.y_scaler.std, dtype=x.dtype, device=x.device)
+        pred_n, _ = self.model((x - mean) / std)
+        return pred_n.mean(dim=1) * y_std + y_mean
 
 
 def fit_dynamics(
@@ -147,6 +157,8 @@ def fit_dynamics(
         if log_every and (epoch + 1) % log_every == 0:
             print(f"[fit_dynamics] epoch {epoch + 1}/{epochs} loss={float(loss):.4f}", flush=True)
     model.eval()
+    for p in model.parameters():
+        p.requires_grad_(False)
     return FittedDynamics(model, x_scaler, y_scaler, device=device)
 
 
@@ -160,6 +172,53 @@ def _weights(family, grad_norm, eps_model, sig, delta_td, eps_reg):
     if family == LossFamily.CALIBRATED:
         return grad_norm * eps_model / (sig + eps_reg)
     raise ValueError(f"unknown loss family: {family}")
+
+
+def fit_state_value(
+    data: dict,
+    *,
+    hidden: int = 256,
+    n_layers: int = 2,
+    epochs: int = 100,
+    batch_size: int = 256,
+    lr: float = 1e-3,
+    gamma: float = 0.99,
+    device: torch.device | str = "cpu",
+    seed: int = 0,
+) -> StateValue:
+    """Fit a state-value baseline by TD(0) on an offline ``data`` dict.
+
+    Requires ``obs``, ``next_obs``, ``rew`` and (optionally) ``done``. Used to supply
+    the raw value and ``||grad_s V||`` for the value-aware model weights.
+    """
+    torch.manual_seed(seed)
+    device = torch.device(device)
+    obs = torch.as_tensor(np.asarray(data["obs"], dtype=np.float32), device=device)
+    next_obs = torch.as_tensor(np.asarray(data["next_obs"], dtype=np.float32), device=device)
+    rew = torch.as_tensor(np.asarray(data["rew"], dtype=np.float32), device=device)
+    done = torch.as_tensor(np.asarray(data.get("done", np.zeros(len(obs))), dtype=np.float32), device=device)
+    net = StateValue(obs.shape[1], hidden=hidden, n_layers=n_layers).to(device)
+    target = StateValue(obs.shape[1], hidden=hidden, n_layers=n_layers).to(device)
+    target.load_state_dict(net.state_dict())
+    for p in target.parameters():
+        p.requires_grad_(False)
+    opt = torch.optim.Adam(net.parameters(), lr=lr)
+    n = len(obs)
+    for _ in range(epochs):
+        perm = torch.randperm(n)
+        for i in range(0, n, batch_size):
+            idx = perm[i : i + batch_size]
+            with torch.no_grad():
+                bootstrap = rew[idx] + gamma * (1.0 - done[idx]) * target(next_obs[idx])
+            loss = ((net(obs[idx]) - bootstrap) ** 2).mean()
+            opt.zero_grad()
+            loss.backward()
+            opt.step()
+        with torch.no_grad():
+            for p, tp in zip(net.parameters(), target.parameters()):
+                tp.data.mul_(0.99).add_(0.01 * p.data)
+    net.eval()
+    return net
 
 
 def load_replay(path: str | Path) -> dict:
