@@ -25,6 +25,12 @@ dev = [
 deep = [
     "torch>=2.1",
 ]
+mujoco = [
+    "gymnasium[mujoco]>=0.29",
+]
+stats = [
+    "rliable>=1.0.2",
+]
 bench = [
     "mbrl-lib>=0.1.0",
 ]

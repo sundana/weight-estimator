@@ -1,10 +1,12 @@
 # AGENTS.md
 
-Research scaffold for the paper *"When and why does value-aware model learning fail?"*
-Full plan: `RESEARCH_PLAN.md`. Current status: Phase 1a/1b/1c — tabular and continuous
-suites, weighted losses, exact policy-gradient machinery, neural model-learning
-diagnostics, and theory notes are implemented; the deep baselines and remaining stubs
-are planned work.
+Research scaffold, migrated to the WP1-WP4 plan in
+`C:\Users\USER\Documents\Obsidian Vault\Research Plan` (value-aware loss stabilization
+and scalability for MBRL). Current status: WP1 in progress — the tabular ground-truth
+suite, weighted losses, exact policy-gradient machinery, and theory notes are
+implemented; the deep Distractor-Gym (MuJoCo + torch) and VJP profiling stack under
+`deep/`/`profiling/` are scaffolded, and the deep baselines and remaining stubs are
+planned work.
 
 ## Run / verify
 
@@ -20,18 +22,25 @@ are planned work.
   `tabular.py`/`continuous.py` (env suites), `agents.py` (exact tabular policy
   gradient, model fitting, rollouts), `losses.py` (weighted loss family),
   `diagnostics.py` (public diagnostics API, smoke-tested)
+- `src/distractor_gym/deep/` — torch model-learning stack (nets, VJP, offline training)
+  for the WP1 deep diagnostics; imports torch lazily
+- `src/distractor_gym/profiling/` — per-sample VJP hardware profiling harness (WP1 Exp 1.2)
 - `experiments/` — Exp 1-3 + 1b + 4 entry points; `configs/*.yaml` feed them (keep
   knobs in sync); `paper/notes/theory.md` states Lemma 1, Theorems 1-3
 - `paper/notes/outline.md` — paper outline + open items
 
 ## Conventions
 
-- Functions throwing `NotImplementedError` are **planned work** (per `RESEARCH_PLAN.md`),
+- Functions throwing `NotImplementedError` are **planned work** (per the WP1-WP4 plan),
   not bugs — do not implement them unless the corresponding phase is in scope.
 - Tabular experiments are ground-truth labs: verify exact quantities against
   finite-difference checks before trusting them (`tests/test_agents.py`).
-- `exp4_continuous` needs torch; the deep benchmark needs `mbrl-lib` + `dm_control`,
-  which are not installed (mbrl-lib pins old `gym` — provisioning is an open item).
+- Optional extras in `pyproject.toml`: `deep` (torch), `mujoco` (`gymnasium[mujoco]`),
+  `stats` (`rliable`), `bench` (mbrl-lib — pins old `gym`, provisioning open).
+- WP1 profiling runs on the local RTX 5060 Ti (16GB); the plan's A100/4090 absolute
+  numbers are reported as relative overhead ratios, not reproduced exactly.
+- `exp4_continuous` needs torch; the WP3 deep benchmark needs `mbrl-lib` + `dm_control`,
+  which are not installed.
 - Docstrings state the math/API contract; no inline comments in source.
 
 ## Commits

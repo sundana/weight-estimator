@@ -4,15 +4,17 @@ When and why does value-aware model learning fail? A diagnostic suite for object
 mismatch in model-based RL, with a theory of the bias-variance of the weight estimator
 `w`.
 
-See `RESEARCH_PLAN.md` for the full research plan.
+See the WP1-WP4 plan in `C:\Users\USER\Documents\Obsidian Vault\Research Plan` for the
+full research programme (value-aware loss stabilization and scalability for MBRL).
 
 ## Layout
 
 ```
-RESEARCH_PLAN.md        research plan and paper outline
 src/distractor_gym/     core package: envs, losses, diagnostics
+src/distractor_gym/deep/      torch model-learning stack (WP1 deep diagnostics)
+src/distractor_gym/profiling/ per-sample VJP hardware profiling (WP1 Exp 1.2)
 configs/                regime + baseline configuration files
-experiments/            experiment entry points (Exp 1-3)
+experiments/            experiment entry points (Exp 1-3 + 1b + 4 + 5)
 paper/                  notes and drafts
 ```
 
@@ -71,3 +73,13 @@ experiment (Exp 4) needs `torch` (not installed) and is withdrawn pending a coor
 scaling fix. The deep-baseline benchmark (MBPO/VaGraM/DreamerV3/TD-MPC2, Phase 1c/2/3)
 needs `mbrl-lib` + `dm_control` provisioning and remains planned work
 (`NotImplementedError`).
+
+### WP1 migration
+
+The repo is being migrated to the WP1-WP4 plan. The tabular suite is retained as the
+ground-truth lab; WP1 adds the deep Distractor-Gym over MuJoCo and the per-sample VJP
+profiling harness. `src/distractor_gym/deep/` (nets, VJP, offline training) and
+`src/distractor_gym/profiling/` (Exp 1.2) are scaffolded. Optional extras:
+`pip install -e ".[mujoco,stats]"` for `gymnasium[mujoco]` + `rliable`. Profiling runs on
+the local RTX 5060 Ti; the plan's A100/4090 numbers are reported as relative overhead
+ratios.
