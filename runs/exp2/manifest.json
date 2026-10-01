@@ -1,5 +1,5 @@
 {
-  "git_sha": "ef1046535eb696f888f7eb01342c1639e90469ff",
+  "git_sha": "700770dd11b2b8f47955d1c0fe835adfcd8d84cf",
   "config": {
     "gamma": 0.99,
     "n_data": 8000,
@@ -38,6 +38,6 @@
       ]
     }
   },
-  "python": "3.14.6",
-  "numpy": "2.5.2"
+  "python": "3.12.9",
+  "numpy": "2.4.6"
 }
