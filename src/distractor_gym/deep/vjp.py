@@ -30,13 +30,27 @@ def per_sample_value_grad_norm(
     return per_sample_grad(fn, x).norm(dim=-1)
 
 
+def make_value_grad_norm_fn(fn):
+    """Build the ``vmap(grad)`` transform once for a per-sample scalar ``fn``.
+
+    Reusing the transform avoids re-tracing functorch on every call, which otherwise
+    dominates the wall-clock for small networks (see WP1 Exp 1.2).
+    """
+    grad_fn = torch.func.vmap(torch.func.grad(fn))
+
+    def value_grad_norm(x: torch.Tensor) -> torch.Tensor:
+        return grad_fn(x).norm(dim=-1)
+
+    return value_grad_norm
+
+
 def state_value_grad_norm(net, obs: torch.Tensor) -> torch.Tensor:
     """``||grad_s V(s)||`` for a module mapping a batch ``obs`` to a scalar per row."""
 
     def single(s: torch.Tensor) -> torch.Tensor:
         return net(s.unsqueeze(0)).reshape(())
 
-    return per_sample_value_grad_norm(single, obs)
+    return make_value_grad_norm_fn(single)(obs)
 
 
 def finite_difference_grad(
