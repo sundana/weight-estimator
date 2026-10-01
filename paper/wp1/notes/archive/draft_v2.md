@@ -6,7 +6,7 @@
 `draft_v1.md`. All numbers are produced by the committed runs under `runs/` (each with a
 `manifest.json` pinning the config, git SHA, and library versions) at 10 seeds (5 for the
 phase diagram). Paper tables are generated from the runs by `experiments/report.py`
-(`paper/tables/*.tex`). The continuous neural transfer (Exp 4) was **not** re-run in this
+(`paper/wp1/tables/*.tex`). The continuous neural transfer (Exp 4) was **not** re-run in this
 revision and its earlier numbers are withdrawn pending a `torch` provisioning + a
 coordinate-scaling fix.
 
@@ -102,7 +102,7 @@ Setup. Model family `P_theta(s' | s, a)`; weighted loss
 Value-aware weights: `w = |V(s') - V(s)|` (VAML-1), `w = ||grad_s V(s')||` (VaGraM),
 `w = exp((V(s') - V_max)/tau)` (Lambert). The weight is estimated from a data-dependent
 value estimate, so `w_hat = w(V_hat, grad V_hat)` has bias and variance. Full
-statements and proofs: `paper/notes/theory.md`.
+statements and proofs: `paper/wp1/notes/theory.md`.
 
 **Lemma 1 (decomposition).** Let `V` be twice differentiable with Hessian `H_V`, `e =
 s_hat' - s'`, `phi = angle(grad_s V(s'), e)`. Then
@@ -226,7 +226,7 @@ At `d_d=2`, VAML-1 has higher alignment than MLE while VaGraM is unstable:
 The value-aware benefit is decision-level (alignment) and does not require lower
 Bellman risk -- consistent with Theorem 3.
 
-The oracle-vs-estimated ablation (generated table `paper/tables/exp2_oracle.tex`) shows
+The oracle-vs-estimated ablation (generated table `paper/wp1/tables/exp2_oracle.tex`) shows
 that at `d_d=2` the estimated-weight risk is close to the oracle-weight risk
 (e.g. dense+uniform VAML-1: est 1.325 vs ora 1.374 vs MLE 1.376), so under a capacity
 limit the weight-estimation noise is no longer the dominant gap it is in the

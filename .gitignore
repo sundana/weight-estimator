@@ -24,11 +24,13 @@ outputs/
 
 # Latex build
 *.aux
+*.bbl
+*.blg
 *.fdb_latexmk
 *.fls
 *.out
 *.synctex.gz
-paper/*.pdf
+paper/**/*.pdf
 
 # replicate paper
 replicate/*/paper

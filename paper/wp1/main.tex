@@ -7,9 +7,7 @@
 \usepackage{hyperref}
 \usepackage{mathtools}
 
-\newtheorem{theorem}{Theorem}
-\newtheorem{lemma}{Lemma}
-\newtheorem{remark}{Remark}
+\input{../shared/macros.tex}
 
 \title{When and Why Does Value-Aware Model Learning Fail?\\
   \large A Diagnostic Suite for Objective Mismatch in Model-Based Reinforcement Learning}
@@ -25,7 +23,7 @@ produced by the committed runs under \texttt{runs/} (each with a \texttt{manifes
 pinning the config, git SHA, and library versions). The work is aligned to the WP1--WP4
 plan (value-aware loss stabilization and scalability for MBRL); WP1 --- the
 weight-estimator theory, mismatch diagnostics, and VJP profiling --- is complete and
-summarised in \texttt{paper/notes/wp1\_report.md}. The continuous neural transfer
+summarised in \texttt{paper/wp1/notes/wp1\_report.md}. The continuous neural transfer
 (Exp~4) is superseded by the analytic Exp~1.1 of Sec.~\ref{sec:exp11-deep}; its earlier
 numbers remain withdrawn.
 \end{center}
@@ -165,7 +163,7 @@ with MLE the special case $w = 1$. Value-aware weights: $w = \lvert V(s') - V(s)
 $w = \exp\bigl((V(s') - V_{\max})/\tau\bigr)$ (Lambert). The weight is never known; it
 is estimated from a data-dependent value estimate, so
 $\hat{w} = w(\hat{V}, \nabla \hat{V})$ has bias and variance. Full statements and proofs
-in \texttt{paper/notes/theory.md}.
+in \texttt{paper/wp1/notes/theory.md}.
 
 \begin{lemma}[decomposition]
 \label{lem:decomp}
@@ -395,7 +393,7 @@ value-aware vs MLE, margin $0.1$).
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\textwidth]{../runs/exp5_phase/phase_diagram.png}
+\includegraphics[width=\textwidth]{../../runs/exp5_phase/phase_diagram.png}
 \caption{Mismatch phase diagram. Color is best value-aware minus MLE alignment
 ($\text{red}>0$: value-aware-win); stars mark value-aware-win cells. Distractors at
 small capacity drive MLE below the value-aware families; larger capacity removes the
@@ -510,67 +508,7 @@ value-aware weighting is not helping; the model is in the MLE-optimal regime.
   (benchmark provisioning is an open item; \texttt{mbrl-lib} pins old \texttt{gym}).
 \end{itemize}
 
-\begin{thebibliography}{99}
-
-\bibitem{deisenroth2011pilco}
-M.~Deisenroth and C.~Rasmussen.
-PILCO: A model-based and data-efficient approach to policy search.
-In \emph{Proceedings of ICML}, 2011.
-
-\bibitem{farahmand2017vaml}
-A.~Farahmand, A.~Barron, and C.~Szepesv\'ari.
-Value-aware model learning.
-2017.
-
-\bibitem{farahmand2018itervaml}
-A.~Farahmand.
-Iterative value-aware model learning.
-In \emph{Advances in Neural Information Processing Systems}, 2018.
-
-\bibitem{lambert2020objective}
-N.~Lambert, B.~Amos, O.~Yadan, and R.~Calandra.
-Objective mismatch in model-based reinforcement learning.
-In \emph{Proceedings of L4DC}, 2020.
-
-\bibitem{janner2019mbpo}
-M.~Janner, J.~Fu, M.~Zhang, and S.~Levine.
-When to trust your model: Model-based policy optimization.
-In \emph{Advances in Neural Information Processing Systems}, 2019.
-
-\bibitem{voelcker2022vagram}
-C.~Voelcker, V.~Liao, A.~Garg, and A.~Farahmand.
-Value gradient weighted model-based reinforcement learning (VaGraM).
-In \emph{Proceedings of ICLR}, 2022.
-
-\bibitem{sun2023mobile}
-Y.~Sun, J.~Zhang, C.~Jia, H.~Lin, J.~Ye, and Y.~Yu.
-Model-bellman inconsistency for model-based offline reinforcement learning (MOBILE).
-In \emph{Proceedings of ICML}, 2023.
-
-\bibitem{hafner2023dreamerv3}
-D.~Hafner, J.~Pasukonis, J.~Ba, and T.~Lillicrap.
-Mastering diverse domains through world models.
-2023.
-
-\bibitem{hansen2024tdmpc2}
-N.~Hansen, H.~Su, and X.~Wang.
-TD-MPC2: Scalable, robust world models for continuous control.
-In \emph{Proceedings of ICML}, 2024.
-
-\bibitem{wei2024unified}
-R.~Wei, N.~Lambert, and A.~McDonald.
-A unified view on solving objective mismatch in model-based reinforcement learning.
-2024.
-
-\bibitem{cvaml2025}
-C.~Voelcker et~al.
-Calibrated value-aware model learning (CVAML).
-2025.
-
-\bibitem{romi2026}
-ROMI: Model-based offline reinforcement learning via robust value-aware model learning.
-In \emph{Proceedings of ICLR}, 2026.
-
-\end{thebibliography}
+\bibliographystyle{plain}
+\bibliography{../shared/references}
 
 \end{document}

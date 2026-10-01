@@ -115,7 +115,7 @@ Setup. Model family `P_theta(s' | s, a)`; weighted loss
 Value-aware weights: `w = |V(s') - V(s)|` (VAML-1), `w = ||grad_s V(s')||` (VaGraM),
 `w = exp((V(s') - V_max)/tau)` (Lambert). The weight is never known; it is estimated
 from a data-dependent value estimate, so `w_hat = w(V_hat, grad V_hat)` has bias and
-variance. Full statements and proofs in `paper/notes/theory.md`.
+variance. Full statements and proofs in `paper/wp1/notes/theory.md`.
 
 **Lemma 1 (decomposition).** Let `V` be twice differentiable with Hessian `H_V`, and
 let `e = s_hat' - s'` be the model prediction error. Then, with

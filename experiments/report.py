@@ -1,6 +1,6 @@
 """Generate LaTeX tables from committed run artifacts.
 
-Reads ``runs/*/**.json`` and writes ``paper/tables/*.tex`` so the paper never drifts
+Reads ``runs/*/**.json`` and writes ``paper/wp1/tables/*.tex`` so the paper never drifts
 from the committed results. Kept dependency-light (json + pathlib); the LaTeX is
 ordinary ``table`` environments with ``booktabs``.
 """
@@ -175,7 +175,7 @@ def h13_overhead_table(rows: list[dict], h13: dict) -> str:
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--runs", default="runs")
-    ap.add_argument("--out", default="paper/tables")
+    ap.add_argument("--out", default="paper/wp1/tables")
     args = ap.parse_args(argv)
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)

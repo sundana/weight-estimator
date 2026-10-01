@@ -15,7 +15,7 @@ src/distractor_gym/deep/      torch model-learning stack (WP1 deep diagnostics)
 src/distractor_gym/profiling/ per-sample VJP hardware profiling (WP1 Exp 1.2)
 configs/                regime + baseline configuration files
 experiments/            experiment entry points (Exp 1-3 + 1b + 4 + 5)
-paper/                  notes and drafts
+paper/                  per-WP papers (wp1/ wp2/ wp3/ wp4/) + shared/ assets
 ```
 
 ## Setup
@@ -68,7 +68,7 @@ versions) next to their results.
 The revised tabular results are in `runs/` (10 seeds each): `exp1`/`exp2` (uncapacitated
 ground-truth), `exp1_capacity`/`exp2_capacity` (capacity-limited + stochastic
 distractors), and `exp1b`/`exp1b_capacity` (crossover). Corrected theory and results are
-written up in `paper/draft_v2.md` and `paper/notes/theory.md`. The continuous neural
+written up in `paper/wp1/notes/archive/draft_v2.md` and `paper/wp1/notes/theory.md`. The continuous neural
 experiment (Exp 4) needs `torch` (not installed) and is withdrawn pending a coordinate
 scaling fix. The deep-baseline benchmark (MBPO/VaGraM/DreamerV3/TD-MPC2, Phase 1c/2/3)
 needs `mbrl-lib` + `dm_control` provisioning and remains planned work
@@ -80,8 +80,8 @@ The repo is migrated to the WP1-WP4 plan. The tabular suite is retained as the
 ground-truth lab (H1.2); `src/distractor_gym/deep/` holds the deep Distractor-Gym
 (MuJoCo + analytic), the weighted model losses, and Exp 1.1 policy-gradient alignment;
 `src/distractor_gym/profiling/` holds the Exp 1.2 per-sample VJP profiling harness.
-`experiments/report.py` generates `paper/tables/*.tex` from the committed `runs/`.
-Results are summarised in `paper/notes/wp1_report.md`. Optional extras:
+`experiments/report.py` generates `paper/wp1/tables/*.tex` from the committed `runs/`.
+Results are summarised in `paper/wp1/notes/wp1_report.md`. Optional extras:
 `pip install -e ".[mujoco,stats]"` for `gymnasium[mujoco]` + `rliable`. Profiling runs on
 the local RTX 5060 Ti (H1.3 exact VJP fails, stale caching passes); the plan's A100/4090
 numbers are reported as relative overhead ratios.
