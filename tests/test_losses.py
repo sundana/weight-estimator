@@ -1,7 +1,13 @@
 import numpy as np
 import pytest
 
-from distractor_gym.losses import LossFamily, weight, weighted_loss
+from distractor_gym.losses import (
+    LossFamily,
+    clip_weights,
+    self_normalize,
+    weight,
+    weighted_loss,
+)
 
 
 @pytest.fixture
@@ -29,6 +35,53 @@ def test_vagram_weights(arrays):
     V_s, V_sp, grad = arrays
     w = weight(LossFamily.VAGRAM, grad_V_sp=grad)
     assert np.allclose(w, np.linalg.norm(grad, axis=-1))
+
+
+def test_td_error_weights(arrays):
+    V_s, V_sp, grad = arrays
+    delta = 0.3 * grad[:, 0] - 0.2 * grad[:, 1]
+    w = weight(LossFamily.TD_ERROR, delta_td=delta)
+    assert np.allclose(w, np.abs(delta))
+
+
+def test_td_error_requires_delta_td(arrays):
+    with pytest.raises(ValueError):
+        weight(LossFamily.TD_ERROR, V_sp=arrays[1])
+
+
+def test_calibrated_weights_formula(arrays):
+    V_s, V_sp, grad = arrays
+    eps = np.full(50, 0.5)
+    sigma = np.full(50, 0.25)
+    w = weight(
+        LossFamily.CALIBRATED,
+        grad_V_sp=grad,
+        eps_model=eps,
+        sigma_epistemic=sigma,
+        eps_reg=1e-8,
+    )
+    expected = np.linalg.norm(grad, axis=-1) * eps / (sigma + 1e-8)
+    assert np.allclose(w, expected)
+
+
+def test_calibrated_requires_inputs(arrays):
+    with pytest.raises(ValueError):
+        weight(LossFamily.CALIBRATED, grad_V_sp=arrays[2], eps_model=np.ones(50))
+
+
+def test_self_normalize_unit_mean(arrays):
+    V_s, V_sp, grad = arrays
+    w = np.abs(grad[:, 0]) + 0.1
+    wn = self_normalize(w)
+    assert wn.mean() == pytest.approx(1.0, abs=1e-6)
+    assert np.allclose(wn, w / (w.mean() + 1e-8))
+
+
+def test_clip_weights_bounds(arrays):
+    V_s, V_sp, grad = arrays
+    w = np.array([-1.0, 0.5, 3.0, 10.0])
+    assert np.allclose(clip_weights(w, w_min=0.0, w_max=5.0), [0.0, 0.5, 3.0, 5.0])
+    assert np.allclose(clip_weights(w, w_min=0.0), [0.0, 0.5, 3.0, 10.0])
 
 
 def test_lambert_weights_nonnegative_and_bounded(arrays):

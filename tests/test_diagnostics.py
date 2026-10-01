@@ -42,6 +42,36 @@ def test_decompose_td_error_perfect_fit():
     assert res.slope == pytest.approx(2.0, abs=1e-9)
 
 
+def test_decompose_spearman_perfect_product():
+    n = 500
+    rng = np.random.default_rng(1)
+    grad_norm = rng.uniform(0.1, 2.0, n)
+    eps = rng.uniform(0.05, 1.0, n)
+    cos = np.ones(n)
+    product = grad_norm * eps
+    delta = 3.0 * product
+    res = decompose_td_error(delta, grad_norm, eps, cos)
+    assert res.spearman_product == pytest.approx(1.0, abs=1e-9)
+    assert res.spearman_cos == pytest.approx(1.0, abs=1e-9)
+
+
+def test_decompose_spearman_negative_correlation():
+    n = 200
+    rng = np.random.default_rng(2)
+    grad_norm = rng.uniform(0.1, 2.0, n)
+    eps = rng.uniform(0.05, 1.0, n)
+    cos = np.ones(n)
+    delta = -2.0 * grad_norm * eps
+    res = decompose_td_error(delta, grad_norm, eps, cos)
+    assert res.spearman_product == pytest.approx(-1.0, abs=1e-9)
+
+
+def test_decompose_spearman_degenerate_constant():
+    res = decompose_td_error(np.ones(10), np.ones(10), np.ones(10), np.ones(10))
+    assert res.spearman_product == 0.0
+    assert res.spearman_cos == 0.0
+
+
 def test_weight_signal_to_noise_degenerate():
     losses = np.full(10, 3.0)
     assert weight_signal_to_noise(losses, np.ones(10)) == float("inf")

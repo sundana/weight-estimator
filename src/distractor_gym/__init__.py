@@ -10,7 +10,7 @@ from .diagnostics import (
     weight_estimator_stats,
     weight_signal_to_noise,
 )
-from .losses import LossFamily, weight
+from .losses import LossFamily, clip_weights, self_normalize, weight
 from .tabular import TabularDistractorEnv
 
 __all__ = [
@@ -21,6 +21,8 @@ __all__ = [
     "TabularDistractorEnv",
     "LossFamily",
     "weight",
+    "self_normalize",
+    "clip_weights",
     "gradient_alignment",
     "decompose_td_error",
     "weight_estimator_stats",

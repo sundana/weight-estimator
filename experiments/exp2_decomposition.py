@@ -76,6 +76,8 @@ def part_a_regime(regime: dict, cfg: dict, rng: np.random.Generator) -> dict:
         "slope": res.slope,
         "mean_cos_phi": res.mean_cos_phi,
         "curvature_residual": res.curvature_residual,
+        "spearman_product": res.spearman_product,
+        "spearman_cos": res.spearman_cos,
         "n": res.n,
     }
 

@@ -38,7 +38,41 @@ class DecompositionResult:
     slope: float
     mean_cos_phi: float
     curvature_residual: float
+    spearman_product: float
+    spearman_cos: float
     n: int
+
+
+def _average_rank(x: np.ndarray) -> np.ndarray:
+    """Average (fractional) ranks of ``x``, assigning ties their mean rank."""
+    x = np.asarray(x, dtype=float)
+    n = len(x)
+    order = np.argsort(x, kind="mergesort")
+    ranks = np.empty(n, dtype=float)
+    ranks[order] = np.arange(1, n + 1, dtype=float)
+    sx = x[order]
+    i = 0
+    while i < n:
+        j = i
+        while j + 1 < n and sx[j + 1] == sx[i]:
+            j += 1
+        if j > i:
+            ranks[order[i : j + 1]] = 0.5 * ((i + 1) + (j + 1))
+        i = j + 1
+    return ranks
+
+
+def _spearman(a: np.ndarray, b: np.ndarray) -> float:
+    """Spearman rank correlation; 0.0 for <2 points or a constant input."""
+    if len(a) < 2:
+        return 0.0
+    ra = _average_rank(a)
+    rb = _average_rank(b)
+    sa = ra.std()
+    sb = rb.std()
+    if sa == 0.0 or sb == 0.0:
+        return 0.0
+    return float(np.mean((ra - ra.mean()) * (rb - rb.mean())) / (sa * sb))
 
 
 def decompose_td_error(
@@ -49,8 +83,14 @@ def decompose_td_error(
     ``delta_td = |V(s') - V(s_hat')|``, ``grad_V_norm = ||grad V(s')||``,
     ``eps_model = ||s_hat' - s'||``, ``cos_phi`` the alignment of the error vector
     with ``grad V``.
+
+    ``spearman_product`` is the H1.2 rank correlation between ``|delta_TD|`` and the
+    Cauchy-Schwarz product ``||grad V(s')|| * ||s' - f_theta(s, a)||`` (no ``cos phi``);
+    ``spearman_cos`` is the same against the tighter Lemma-1 predictor that includes
+    ``|cos phi|``.
     """
     pred = grad_V_norm * eps_model * np.abs(cos_phi)
+    product = grad_V_norm * eps_model
     n = len(delta_td)
     if n == 0:
         raise ValueError("empty input")
@@ -64,6 +104,8 @@ def decompose_td_error(
         slope=slope,
         mean_cos_phi=float(np.mean(np.abs(cos_phi))),
         curvature_residual=curvature_residual,
+        spearman_product=_spearman(delta_td, product),
+        spearman_cos=_spearman(delta_td, pred),
         n=n,
     )
 

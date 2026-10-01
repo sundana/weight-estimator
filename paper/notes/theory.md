@@ -41,6 +41,15 @@ to the distractor count `d_d` (deterministic distractors are fit exactly and
 residual more than doubles, which is the regime where gradient-only weighting is
 mis-specified.
 
+**H1.2 rank check (exp2 Part A).** The plan's statistic is the Spearman rank correlation
+between `|delta_TD|` and the Cauchy-Schwarz product `||grad V(s')|| * ||s' - f_theta(s, a)||`
+(no `cos phi`); `decompose_td_error` reports it as `spearman_product`. In the
+uncapacitated tabular suite it is `rho = 0.999` in all 12 sweeps (dense and sparse),
+comfortably above the H1.2 threshold `rho > 0.8`, so the first-order product is a
+rank-faithful predictor of the model-induced value error. `spearman_cos` (the tighter
+Lemma-1 predictor with `|cos phi|`) coincides here because the deterministic distractor
+makes `|cos phi|` nearly constant across transitions.
+
 ---
 
 ## Theorem 1 (prediction-risk of the weighted ratio estimator)
