@@ -1,17 +1,17 @@
 \begin{table}[htbp]
 \centering
-\caption{Exp~1.1 deep policy-gradient alignment $\cos(g_{\text{true}}, g_{\text{model}})$ on the analytic Distractor-Gym (mean over seeds and $\sigma_{\text{dist}}$); random and medium-replay SAC datasets.}
+\caption{Exp~1.1 deep policy-gradient alignment $\cos(g_{\text{true}}, g_{\text{model}})$ on the MuJoCo Distractor-Gym (differentiated via \texttt{mjd\_transitionFD}; mean over seeds and $\sigma_{\text{dist}}$); random and medium-replay SAC datasets.}
 \label{tab:h11}
 \begin{tabular}{llcccc}
 \toprule
 Dataset & $d_d$ & mle & vagram & td-error & calibrated \\
 \midrule
-medium & 0 & +0.228 & +0.250 & +0.168 & +0.240 \\
-medium & 10 & -0.167 & -0.168 & +0.456 & -0.170 \\
-medium & 50 & +0.340 & +0.036 & -0.092 & +0.058 \\
-random & 0 & +0.789 & +0.792 & +0.788 & +0.798 \\
-random & 10 & +0.470 & +0.378 & +0.541 & +0.398 \\
-random & 50 & +0.299 & +0.742 & +0.485 & +0.323 \\
+medium & 0 & +0.061 & -0.225 & +0.427 & -0.207 \\
+medium & 10 & +0.942 & +0.937 & +0.945 & +0.489 \\
+medium & 50 & -0.752 & -0.760 & -0.140 & -0.445 \\
+random & 0 & +0.356 & +0.796 & +0.487 & +0.196 \\
+random & 10 & +0.941 & +0.934 & +0.942 & +0.941 \\
+random & 50 & +0.915 & +0.903 & +0.925 & +0.810 \\
 \bottomrule
 \end{tabular}
 \end{table}

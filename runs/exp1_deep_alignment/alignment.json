@@ -4,863 +4,863 @@
     "sigma_dist": 0.0,
     "dataset": "random",
     "family": "mle",
-    "cos": 0.6270022988319397,
-    "g_true_norm": 0.21951168775558472,
-    "g_model_norm": 0.46214985847473145
+    "cos": 0.0046961805783212185,
+    "g_true_norm": 3.2719521522521973,
+    "g_model_norm": 12.95583724975586
   },
   {
     "d_d": 0,
     "sigma_dist": 0.0,
     "dataset": "random",
     "family": "vagram",
-    "cos": 0.6300370693206787,
-    "g_true_norm": 0.21951168775558472,
-    "g_model_norm": 0.46722885966300964
+    "cos": 0.764097273349762,
+    "g_true_norm": 3.2719521522521973,
+    "g_model_norm": 11.32707405090332
   },
   {
     "d_d": 0,
     "sigma_dist": 0.0,
     "dataset": "random",
     "family": "td_error",
-    "cos": 0.6438532471656799,
-    "g_true_norm": 0.21951168775558472,
-    "g_model_norm": 0.44391489028930664
+    "cos": 0.8545553088188171,
+    "g_true_norm": 3.2719521522521973,
+    "g_model_norm": 14.857294082641602
   },
   {
     "d_d": 0,
     "sigma_dist": 0.0,
     "dataset": "random",
     "family": "calibrated",
-    "cos": 0.6558640003204346,
-    "g_true_norm": 0.21951168775558472,
-    "g_model_norm": 0.4269706904888153
+    "cos": -0.3954511880874634,
+    "g_true_norm": 3.2719521522521973,
+    "g_model_norm": 7.257841110229492
   },
   {
     "d_d": 0,
     "sigma_dist": 0.0,
     "dataset": "medium",
     "family": "mle",
-    "cos": -0.24149549007415771,
-    "g_true_norm": 0.21951168775558472,
-    "g_model_norm": 0.7462116479873657
+    "cos": -0.002174010267481208,
+    "g_true_norm": 3.2719521522521973,
+    "g_model_norm": 1.2701789140701294
   },
   {
     "d_d": 0,
     "sigma_dist": 0.0,
     "dataset": "medium",
     "family": "vagram",
-    "cos": -0.23175041377544403,
-    "g_true_norm": 0.21951168775558472,
-    "g_model_norm": 0.775259792804718
+    "cos": -0.025070108473300934,
+    "g_true_norm": 3.2719521522521973,
+    "g_model_norm": 0.994804322719574
   },
   {
     "d_d": 0,
     "sigma_dist": 0.0,
     "dataset": "medium",
     "family": "td_error",
-    "cos": -0.2489880621433258,
-    "g_true_norm": 0.21951168775558472,
-    "g_model_norm": 0.756475567817688
+    "cos": -0.029551314190030098,
+    "g_true_norm": 3.2719521522521973,
+    "g_model_norm": 0.9257694482803345
   },
   {
     "d_d": 0,
     "sigma_dist": 0.0,
     "dataset": "medium",
     "family": "calibrated",
-    "cos": -0.236153244972229,
-    "g_true_norm": 0.21951168775558472,
-    "g_model_norm": 0.6450172662734985
+    "cos": 0.05319799855351448,
+    "g_true_norm": 3.2719521522521973,
+    "g_model_norm": 0.5714733004570007
   },
   {
     "d_d": 0,
     "sigma_dist": 0.0,
     "dataset": "random",
     "family": "mle",
-    "cos": 0.943901002407074,
-    "g_true_norm": 0.19170290231704712,
-    "g_model_norm": 0.14025406539440155
+    "cos": 0.8500441908836365,
+    "g_true_norm": 6.907090187072754,
+    "g_model_norm": 100.9168930053711
   },
   {
     "d_d": 0,
     "sigma_dist": 0.0,
     "dataset": "random",
     "family": "vagram",
-    "cos": 0.9449679255485535,
-    "g_true_norm": 0.19170290231704712,
-    "g_model_norm": 0.14082679152488708
+    "cos": 0.9439738392829895,
+    "g_true_norm": 6.907090187072754,
+    "g_model_norm": 10.082205772399902
   },
   {
     "d_d": 0,
     "sigma_dist": 0.0,
     "dataset": "random",
     "family": "td_error",
-    "cos": 0.9229563474655151,
-    "g_true_norm": 0.19170290231704712,
-    "g_model_norm": 0.1404481679201126
+    "cos": 0.6274911165237427,
+    "g_true_norm": 6.907090187072754,
+    "g_model_norm": 17.867891311645508
   },
   {
     "d_d": 0,
     "sigma_dist": 0.0,
     "dataset": "random",
     "family": "calibrated",
-    "cos": 0.9297837018966675,
-    "g_true_norm": 0.19170290231704712,
-    "g_model_norm": 0.1434907168149948
+    "cos": 0.6689309477806091,
+    "g_true_norm": 6.907090187072754,
+    "g_model_norm": 6.840961933135986
   },
   {
     "d_d": 0,
     "sigma_dist": 0.0,
     "dataset": "medium",
     "family": "mle",
-    "cos": 0.5580152869224548,
-    "g_true_norm": 0.19170290231704712,
-    "g_model_norm": 0.12234533578157425
+    "cos": 0.9742657542228699,
+    "g_true_norm": 6.907090187072754,
+    "g_model_norm": 0.12335438281297684
   },
   {
     "d_d": 0,
     "sigma_dist": 0.0,
     "dataset": "medium",
     "family": "vagram",
-    "cos": 0.6019627451896667,
-    "g_true_norm": 0.19170290231704712,
-    "g_model_norm": 0.11842934042215347
+    "cos": -0.08575844019651413,
+    "g_true_norm": 6.907090187072754,
+    "g_model_norm": 0.060989633202552795
   },
   {
     "d_d": 0,
     "sigma_dist": 0.0,
     "dataset": "medium",
     "family": "td_error",
-    "cos": 0.4434727728366852,
-    "g_true_norm": 0.19170290231704712,
-    "g_model_norm": 0.13114145398139954
+    "cos": 0.8900982737541199,
+    "g_true_norm": 6.907090187072754,
+    "g_model_norm": 0.1454053670167923
   },
   {
     "d_d": 0,
     "sigma_dist": 0.0,
     "dataset": "medium",
     "family": "calibrated",
-    "cos": 0.5781123638153076,
-    "g_true_norm": 0.19170290231704712,
-    "g_model_norm": 0.12048646807670593
+    "cos": -0.11941569298505783,
+    "g_true_norm": 6.907090187072754,
+    "g_model_norm": 0.08468914777040482
   },
   {
     "d_d": 0,
     "sigma_dist": 0.3,
     "dataset": "random",
     "family": "mle",
-    "cos": 0.6369257569313049,
-    "g_true_norm": 0.22054457664489746,
-    "g_model_norm": 0.4626283645629883
+    "cos": -0.3590414524078369,
+    "g_true_norm": 3.1969797611236572,
+    "g_model_norm": 6.210476398468018
   },
   {
     "d_d": 0,
     "sigma_dist": 0.3,
     "dataset": "random",
     "family": "vagram",
-    "cos": 0.6402294635772705,
-    "g_true_norm": 0.22054457664489746,
-    "g_model_norm": 0.4673237204551697
+    "cos": 0.5866739749908447,
+    "g_true_norm": 3.1969797611236572,
+    "g_model_norm": 8.043380737304688
   },
   {
     "d_d": 0,
     "sigma_dist": 0.3,
     "dataset": "random",
     "family": "td_error",
-    "cos": 0.6542929410934448,
-    "g_true_norm": 0.22054457664489746,
-    "g_model_norm": 0.4449121356010437
+    "cos": -0.2761419713497162,
+    "g_true_norm": 3.1969797611236572,
+    "g_model_norm": 11.8489990234375
   },
   {
     "d_d": 0,
     "sigma_dist": 0.3,
     "dataset": "random",
     "family": "calibrated",
-    "cos": 0.6672185063362122,
-    "g_true_norm": 0.22054457664489746,
-    "g_model_norm": 0.42719975113868713
+    "cos": -0.3443826735019684,
+    "g_true_norm": 3.1969797611236572,
+    "g_model_norm": 7.00536584854126
   },
   {
     "d_d": 0,
     "sigma_dist": 0.3,
     "dataset": "medium",
     "family": "mle",
-    "cos": -0.24317234754562378,
-    "g_true_norm": 0.22054457664489746,
-    "g_model_norm": 0.650034487247467
+    "cos": -0.030150650069117546,
+    "g_true_norm": 3.1969797611236572,
+    "g_model_norm": 1.5248708724975586
   },
   {
     "d_d": 0,
     "sigma_dist": 0.3,
     "dataset": "medium",
     "family": "vagram",
-    "cos": -0.23642292618751526,
-    "g_true_norm": 0.22054457664489746,
-    "g_model_norm": 0.7590364813804626
+    "cos": -0.05589432641863823,
+    "g_true_norm": 3.1969797611236572,
+    "g_model_norm": 1.2881230115890503
   },
   {
     "d_d": 0,
     "sigma_dist": 0.3,
     "dataset": "medium",
     "family": "td_error",
-    "cos": -0.2513914108276367,
-    "g_true_norm": 0.22054457664489746,
-    "g_model_norm": 0.6415073871612549
+    "cos": -0.05739689618349075,
+    "g_true_norm": 3.1969797611236572,
+    "g_model_norm": 1.173973798751831
   },
   {
     "d_d": 0,
     "sigma_dist": 0.3,
     "dataset": "medium",
     "family": "calibrated",
-    "cos": -0.23566552996635437,
-    "g_true_norm": 0.22054457664489746,
-    "g_model_norm": 0.5086418986320496
+    "cos": -0.04952145367860794,
+    "g_true_norm": 3.1969797611236572,
+    "g_model_norm": 0.9181461334228516
   },
   {
     "d_d": 0,
     "sigma_dist": 0.3,
     "dataset": "random",
     "family": "mle",
-    "cos": 0.9469437003135681,
-    "g_true_norm": 0.1884327530860901,
-    "g_model_norm": 0.13846933841705322
+    "cos": 0.929584801197052,
+    "g_true_norm": 7.637008190155029,
+    "g_model_norm": 17.523239135742188
   },
   {
     "d_d": 0,
     "sigma_dist": 0.3,
     "dataset": "random",
     "family": "vagram",
-    "cos": 0.9522862434387207,
-    "g_true_norm": 0.1884327530860901,
-    "g_model_norm": 0.13935931026935577
+    "cos": 0.8899132013320923,
+    "g_true_norm": 7.637008190155029,
+    "g_model_norm": 17.160083770751953
   },
   {
     "d_d": 0,
     "sigma_dist": 0.3,
     "dataset": "random",
     "family": "td_error",
-    "cos": 0.9321429133415222,
-    "g_true_norm": 0.1884327530860901,
-    "g_model_norm": 0.1429176926612854
+    "cos": 0.7436503767967224,
+    "g_true_norm": 7.637008190155029,
+    "g_model_norm": 20.356630325317383
   },
   {
     "d_d": 0,
     "sigma_dist": 0.3,
     "dataset": "random",
     "family": "calibrated",
-    "cos": 0.9388335943222046,
-    "g_true_norm": 0.1884327530860901,
-    "g_model_norm": 0.14092910289764404
+    "cos": 0.8535977005958557,
+    "g_true_norm": 7.637008190155029,
+    "g_model_norm": 9.738224029541016
   },
   {
     "d_d": 0,
     "sigma_dist": 0.3,
     "dataset": "medium",
     "family": "mle",
-    "cos": 0.8371616005897522,
-    "g_true_norm": 0.1884327530860901,
-    "g_model_norm": 0.1087348610162735
+    "cos": -0.6993417739868164,
+    "g_true_norm": 7.637008190155029,
+    "g_model_norm": 0.9493274688720703
   },
   {
     "d_d": 0,
     "sigma_dist": 0.3,
     "dataset": "medium",
     "family": "vagram",
-    "cos": 0.8666704893112183,
-    "g_true_norm": 0.1884327530860901,
-    "g_model_norm": 0.10823585838079453
+    "cos": -0.7325350642204285,
+    "g_true_norm": 7.637008190155029,
+    "g_model_norm": 0.6590683460235596
   },
   {
     "d_d": 0,
     "sigma_dist": 0.3,
     "dataset": "medium",
     "family": "td_error",
-    "cos": 0.7294583916664124,
-    "g_true_norm": 0.1884327530860901,
-    "g_model_norm": 0.11121301352977753
+    "cos": 0.902888834476471,
+    "g_true_norm": 7.637008190155029,
+    "g_model_norm": 0.2111235111951828
   },
   {
     "d_d": 0,
     "sigma_dist": 0.3,
     "dataset": "medium",
     "family": "calibrated",
-    "cos": 0.855103075504303,
-    "g_true_norm": 0.1884327530860901,
-    "g_model_norm": 0.10811574012041092
+    "cos": -0.7117019891738892,
+    "g_true_norm": 7.637008190155029,
+    "g_model_norm": 1.5267168283462524
   },
   {
     "d_d": 10,
     "sigma_dist": 0.0,
     "dataset": "random",
     "family": "mle",
-    "cos": 0.07224798202514648,
-    "g_true_norm": 0.11845897138118744,
-    "g_model_norm": 0.044516921043395996
+    "cos": 0.9100449681282043,
+    "g_true_norm": 4.426239013671875,
+    "g_model_norm": 0.11712341755628586
   },
   {
     "d_d": 10,
     "sigma_dist": 0.0,
     "dataset": "random",
     "family": "vagram",
-    "cos": 0.1795882135629654,
-    "g_true_norm": 0.11845897138118744,
-    "g_model_norm": 0.0669550970196724
+    "cos": 0.9103207588195801,
+    "g_true_norm": 4.426239013671875,
+    "g_model_norm": 0.11527600139379501
   },
   {
     "d_d": 10,
     "sigma_dist": 0.0,
     "dataset": "random",
     "family": "td_error",
-    "cos": 0.24221459031105042,
-    "g_true_norm": 0.11845897138118744,
-    "g_model_norm": 0.03559441119432449
+    "cos": 0.908565104007721,
+    "g_true_norm": 4.426239013671875,
+    "g_model_norm": 0.10936833173036575
   },
   {
     "d_d": 10,
     "sigma_dist": 0.0,
     "dataset": "random",
     "family": "calibrated",
-    "cos": 0.31813541054725647,
-    "g_true_norm": 0.11845897138118744,
-    "g_model_norm": 0.053389061242341995
+    "cos": 0.9093811511993408,
+    "g_true_norm": 4.426239013671875,
+    "g_model_norm": 0.11172469705343246
   },
   {
     "d_d": 10,
     "sigma_dist": 0.0,
     "dataset": "medium",
     "family": "mle",
-    "cos": -0.6388399600982666,
-    "g_true_norm": 0.11845897138118744,
-    "g_model_norm": 1.0566396713256836
+    "cos": 0.912257194519043,
+    "g_true_norm": 4.426239013671875,
+    "g_model_norm": 0.038558587431907654
   },
   {
     "d_d": 10,
     "sigma_dist": 0.0,
     "dataset": "medium",
     "family": "vagram",
-    "cos": -0.6369237303733826,
-    "g_true_norm": 0.11845897138118744,
-    "g_model_norm": 1.0029152631759644
+    "cos": 0.8964082598686218,
+    "g_true_norm": 4.426239013671875,
+    "g_model_norm": 0.017528165131807327
   },
   {
     "d_d": 10,
     "sigma_dist": 0.0,
     "dataset": "medium",
     "family": "td_error",
-    "cos": 0.6933967471122742,
-    "g_true_norm": 0.11845897138118744,
-    "g_model_norm": 1.9282835721969604
+    "cos": 0.9240543246269226,
+    "g_true_norm": 4.426239013671875,
+    "g_model_norm": 0.1394641101360321
   },
   {
     "d_d": 10,
     "sigma_dist": 0.0,
     "dataset": "medium",
     "family": "calibrated",
-    "cos": -0.6278217434883118,
-    "g_true_norm": 0.11845897138118744,
-    "g_model_norm": 0.8446973562240601
+    "cos": -0.9038582444190979,
+    "g_true_norm": 4.426239013671875,
+    "g_model_norm": 0.0804237425327301
   },
   {
     "d_d": 10,
     "sigma_dist": 0.0,
     "dataset": "random",
     "family": "mle",
-    "cos": 0.6946801543235779,
-    "g_true_norm": 0.09736602008342743,
-    "g_model_norm": 0.005450548604130745
+    "cos": 0.9733807444572449,
+    "g_true_norm": 6.433784008026123,
+    "g_model_norm": 0.05371686816215515
   },
   {
     "d_d": 10,
     "sigma_dist": 0.0,
     "dataset": "random",
     "family": "vagram",
-    "cos": 0.4629027843475342,
-    "g_true_norm": 0.09736602008342743,
-    "g_model_norm": 0.00750771863386035
+    "cos": 0.9731249809265137,
+    "g_true_norm": 6.433784008026123,
+    "g_model_norm": 0.05255721136927605
   },
   {
     "d_d": 10,
     "sigma_dist": 0.0,
     "dataset": "random",
     "family": "td_error",
-    "cos": 0.5903507471084595,
-    "g_true_norm": 0.09736602008342743,
-    "g_model_norm": 0.0061284820549190044
+    "cos": 0.9771457314491272,
+    "g_true_norm": 6.433784008026123,
+    "g_model_norm": 0.05761934816837311
   },
   {
     "d_d": 10,
     "sigma_dist": 0.0,
     "dataset": "random",
     "family": "calibrated",
-    "cos": 0.6412302851676941,
-    "g_true_norm": 0.09736602008342743,
-    "g_model_norm": 0.00549329724162817
+    "cos": 0.9736318588256836,
+    "g_true_norm": 6.433784008026123,
+    "g_model_norm": 0.05382964015007019
   },
   {
     "d_d": 10,
     "sigma_dist": 0.0,
     "dataset": "medium",
     "family": "mle",
-    "cos": 0.2682149410247803,
-    "g_true_norm": 0.09736602008342743,
-    "g_model_norm": 0.27841487526893616
+    "cos": 0.9759091138839722,
+    "g_true_norm": 6.433784008026123,
+    "g_model_norm": 0.3545002043247223
   },
   {
     "d_d": 10,
     "sigma_dist": 0.0,
     "dataset": "medium",
     "family": "vagram",
-    "cos": 0.2947610318660736,
-    "g_true_norm": 0.09736602008342743,
-    "g_model_norm": 0.28500044345855713
+    "cos": 0.975786566734314,
+    "g_true_norm": 6.433784008026123,
+    "g_model_norm": 0.3342170715332031
   },
   {
     "d_d": 10,
     "sigma_dist": 0.0,
     "dataset": "medium",
     "family": "td_error",
-    "cos": 0.28161871433258057,
-    "g_true_norm": 0.09736602008342743,
-    "g_model_norm": 0.3819562792778015
+    "cos": 0.9697301983833313,
+    "g_true_norm": 6.433784008026123,
+    "g_model_norm": 0.35982149839401245
   },
   {
     "d_d": 10,
     "sigma_dist": 0.0,
     "dataset": "medium",
     "family": "calibrated",
-    "cos": 0.24645310640335083,
-    "g_true_norm": 0.09736602008342743,
-    "g_model_norm": 0.2936994731426239
+    "cos": 0.9794100522994995,
+    "g_true_norm": 6.433784008026123,
+    "g_model_norm": 0.26141679286956787
   },
   {
     "d_d": 10,
     "sigma_dist": 0.3,
     "dataset": "random",
     "family": "mle",
-    "cos": 0.4030986726284027,
-    "g_true_norm": 0.11423756182193756,
-    "g_model_norm": 0.040727533400058746
+    "cos": 0.9110016822814941,
+    "g_true_norm": 4.512688636779785,
+    "g_model_norm": 0.11759715527296066
   },
   {
     "d_d": 10,
     "sigma_dist": 0.3,
     "dataset": "random",
     "family": "vagram",
-    "cos": 0.22339914739131927,
-    "g_true_norm": 0.11423756182193756,
-    "g_model_norm": 0.07222139835357666
+    "cos": 0.8812758326530457,
+    "g_true_norm": 4.512688636779785,
+    "g_model_norm": 895.0743408203125
   },
   {
     "d_d": 10,
     "sigma_dist": 0.3,
     "dataset": "random",
     "family": "td_error",
-    "cos": 0.690613329410553,
-    "g_true_norm": 0.11423756182193756,
-    "g_model_norm": 0.10478504747152328
+    "cos": 0.9090358018875122,
+    "g_true_norm": 4.512688636779785,
+    "g_model_norm": 0.111025370657444
   },
   {
     "d_d": 10,
     "sigma_dist": 0.3,
     "dataset": "random",
     "family": "calibrated",
-    "cos": -0.05698126181960106,
-    "g_true_norm": 0.11423756182193756,
-    "g_model_norm": 0.18082460761070251
+    "cos": 0.9095216989517212,
+    "g_true_norm": 4.512688636779785,
+    "g_model_norm": 0.11683297157287598
   },
   {
     "d_d": 10,
     "sigma_dist": 0.3,
     "dataset": "medium",
     "family": "mle",
-    "cos": -0.5480563640594482,
-    "g_true_norm": 0.11423756182193756,
-    "g_model_norm": 0.42142847180366516
+    "cos": 0.903666615486145,
+    "g_true_norm": 4.512688636779785,
+    "g_model_norm": 0.14573067426681519
   },
   {
     "d_d": 10,
     "sigma_dist": 0.3,
     "dataset": "medium",
     "family": "vagram",
-    "cos": -0.5376104116439819,
-    "g_true_norm": 0.11423756182193756,
-    "g_model_norm": 0.37375715374946594
+    "cos": 0.9008294343948364,
+    "g_true_norm": 4.512688636779785,
+    "g_model_norm": 0.13724656403064728
   },
   {
     "d_d": 10,
     "sigma_dist": 0.3,
     "dataset": "medium",
     "family": "td_error",
-    "cos": 0.6755561828613281,
-    "g_true_norm": 0.11423756182193756,
-    "g_model_norm": 0.7214124202728271
+    "cos": 0.9210416674613953,
+    "g_true_norm": 4.512688636779785,
+    "g_model_norm": 0.26208433508872986
   },
   {
     "d_d": 10,
     "sigma_dist": 0.3,
     "dataset": "medium",
     "family": "calibrated",
-    "cos": -0.5166349411010742,
-    "g_true_norm": 0.11423756182193756,
-    "g_model_norm": 0.32642245292663574
+    "cos": 0.9002942442893982,
+    "g_true_norm": 4.512688636779785,
+    "g_model_norm": 0.08549364656209946
   },
   {
     "d_d": 10,
     "sigma_dist": 0.3,
     "dataset": "random",
     "family": "mle",
-    "cos": 0.7081594467163086,
-    "g_true_norm": 0.09670394659042358,
-    "g_model_norm": 0.005416164640337229
+    "cos": 0.9702549576759338,
+    "g_true_norm": 5.754786491394043,
+    "g_model_norm": 0.04997457563877106
   },
   {
     "d_d": 10,
     "sigma_dist": 0.3,
     "dataset": "random",
     "family": "vagram",
-    "cos": 0.6478607058525085,
-    "g_true_norm": 0.09670394659042358,
-    "g_model_norm": 0.005655684042721987
+    "cos": 0.9699386358261108,
+    "g_true_norm": 5.754786491394043,
+    "g_model_norm": 0.04883948341012001
   },
   {
     "d_d": 10,
     "sigma_dist": 0.3,
     "dataset": "random",
     "family": "td_error",
-    "cos": 0.6413580775260925,
-    "g_true_norm": 0.09670394659042358,
-    "g_model_norm": 0.005859137047082186
+    "cos": 0.9750176668167114,
+    "g_true_norm": 5.754786491394043,
+    "g_model_norm": 0.04393113777041435
   },
   {
     "d_d": 10,
     "sigma_dist": 0.3,
     "dataset": "random",
     "family": "calibrated",
-    "cos": 0.688296377658844,
-    "g_true_norm": 0.09670394659042358,
-    "g_model_norm": 0.005342765711247921
+    "cos": 0.9699182510375977,
+    "g_true_norm": 5.754786491394043,
+    "g_model_norm": 0.050357382744550705
   },
   {
     "d_d": 10,
     "sigma_dist": 0.3,
     "dataset": "medium",
     "family": "mle",
-    "cos": 0.25161680579185486,
-    "g_true_norm": 0.09670394659042358,
-    "g_model_norm": 0.24702486395835876
+    "cos": 0.9761695265769958,
+    "g_true_norm": 5.754786491394043,
+    "g_model_norm": 0.34493428468704224
   },
   {
     "d_d": 10,
     "sigma_dist": 0.3,
     "dataset": "medium",
     "family": "vagram",
-    "cos": 0.20706720650196075,
-    "g_true_norm": 0.09670394659042358,
-    "g_model_norm": 0.3071974515914917
+    "cos": 0.9738852977752686,
+    "g_true_norm": 5.754786491394043,
+    "g_model_norm": 0.3214333653450012
   },
   {
     "d_d": 10,
     "sigma_dist": 0.3,
     "dataset": "medium",
     "family": "td_error",
-    "cos": 0.17478813230991364,
-    "g_true_norm": 0.09670394659042358,
-    "g_model_norm": 0.6387479901313782
+    "cos": 0.9664930105209351,
+    "g_true_norm": 5.754786491394043,
+    "g_model_norm": 0.3388054370880127
   },
   {
     "d_d": 10,
     "sigma_dist": 0.3,
     "dataset": "medium",
     "family": "calibrated",
-    "cos": 0.21917861700057983,
-    "g_true_norm": 0.09670394659042358,
-    "g_model_norm": 0.285509318113327
+    "cos": 0.9790977239608765,
+    "g_true_norm": 5.754786491394043,
+    "g_model_norm": 0.25667232275009155
   },
   {
     "d_d": 50,
     "sigma_dist": 0.0,
     "dataset": "random",
     "family": "mle",
-    "cos": 0.7817339301109314,
-    "g_true_norm": 0.059188637882471085,
-    "g_model_norm": 0.005557093303650618
+    "cos": 0.8694117665290833,
+    "g_true_norm": 1.677573323249817,
+    "g_model_norm": 0.010342545807361603
   },
   {
     "d_d": 50,
     "sigma_dist": 0.0,
     "dataset": "random",
     "family": "vagram",
-    "cos": 0.8513092398643494,
-    "g_true_norm": 0.059188637882471085,
-    "g_model_norm": 0.011278173886239529
+    "cos": 0.8534659743309021,
+    "g_true_norm": 1.677573323249817,
+    "g_model_norm": 0.009801247157156467
   },
   {
     "d_d": 50,
     "sigma_dist": 0.0,
     "dataset": "random",
     "family": "td_error",
-    "cos": 0.7730602622032166,
-    "g_true_norm": 0.059188637882471085,
-    "g_model_norm": 0.04394140839576721
+    "cos": 0.8789007663726807,
+    "g_true_norm": 1.677573323249817,
+    "g_model_norm": 0.008964424021542072
   },
   {
     "d_d": 50,
     "sigma_dist": 0.0,
     "dataset": "random",
     "family": "calibrated",
-    "cos": 0.7656548023223877,
-    "g_true_norm": 0.059188637882471085,
-    "g_model_norm": 0.01198616437613964
+    "cos": 0.8339542746543884,
+    "g_true_norm": 1.677573323249817,
+    "g_model_norm": 0.009034253656864166
   },
   {
     "d_d": 50,
     "sigma_dist": 0.0,
     "dataset": "medium",
     "family": "mle",
-    "cos": -0.2617037892341614,
-    "g_true_norm": 0.059188637882471085,
-    "g_model_norm": 1.0334149599075317
+    "cos": -0.5828478932380676,
+    "g_true_norm": 1.677573323249817,
+    "g_model_norm": 0.5077514052391052
   },
   {
     "d_d": 50,
     "sigma_dist": 0.0,
     "dataset": "medium",
     "family": "vagram",
-    "cos": -0.6280863285064697,
-    "g_true_norm": 0.059188637882471085,
-    "g_model_norm": 1.8513123989105225
+    "cos": -0.5819770097732544,
+    "g_true_norm": 1.677573323249817,
+    "g_model_norm": 0.49813035130500793
   },
   {
     "d_d": 50,
     "sigma_dist": 0.0,
     "dataset": "medium",
     "family": "td_error",
-    "cos": -0.741525411605835,
-    "g_true_norm": 0.059188637882471085,
-    "g_model_norm": 3.4770679473876953
+    "cos": 0.6338851451873779,
+    "g_true_norm": 1.677573323249817,
+    "g_model_norm": 0.45544442534446716
   },
   {
     "d_d": 50,
     "sigma_dist": 0.0,
     "dataset": "medium",
     "family": "calibrated",
-    "cos": -0.6381509304046631,
-    "g_true_norm": 0.059188637882471085,
-    "g_model_norm": 2.3759469985961914
+    "cos": -0.5780509114265442,
+    "g_true_norm": 1.677573323249817,
+    "g_model_norm": 0.4153609275817871
   },
   {
     "d_d": 50,
     "sigma_dist": 0.0,
     "dataset": "random",
     "family": "mle",
-    "cos": -0.10844399780035019,
-    "g_true_norm": 0.06256541609764099,
-    "g_model_norm": 0.007379709742963314
+    "cos": 0.9766925573348999,
+    "g_true_norm": 4.410824775695801,
+    "g_model_norm": 0.053032901138067245
   },
   {
     "d_d": 50,
     "sigma_dist": 0.0,
     "dataset": "random",
     "family": "vagram",
-    "cos": 0.6263325214385986,
-    "g_true_norm": 0.06256541609764099,
-    "g_model_norm": 0.004488328937441111
+    "cos": 0.976749837398529,
+    "g_true_norm": 4.410824775695801,
+    "g_model_norm": 0.05287441983819008
   },
   {
     "d_d": 50,
     "sigma_dist": 0.0,
     "dataset": "random",
     "family": "td_error",
-    "cos": 0.22163064777851105,
-    "g_true_norm": 0.06256541609764099,
-    "g_model_norm": 0.0170866921544075
+    "cos": 0.9766607880592346,
+    "g_true_norm": 4.410824775695801,
+    "g_model_norm": 0.04961775615811348
   },
   {
     "d_d": 50,
     "sigma_dist": 0.0,
     "dataset": "random",
     "family": "calibrated",
-    "cos": -0.12270057201385498,
-    "g_true_norm": 0.06256541609764099,
-    "g_model_norm": 0.004614260513335466
+    "cos": 0.9749829769134521,
+    "g_true_norm": 4.410824775695801,
+    "g_model_norm": 0.05071184039115906
   },
   {
     "d_d": 50,
     "sigma_dist": 0.0,
     "dataset": "medium",
     "family": "mle",
-    "cos": 0.5365930795669556,
-    "g_true_norm": 0.06256541609764099,
-    "g_model_norm": 1.3747203350067139
+    "cos": -0.9437078833580017,
+    "g_true_norm": 4.410824775695801,
+    "g_model_norm": 0.8832376599311829
   },
   {
     "d_d": 50,
     "sigma_dist": 0.0,
     "dataset": "medium",
     "family": "vagram",
-    "cos": 0.5297925472259521,
-    "g_true_norm": 0.06256541609764099,
-    "g_model_norm": 1.287838339805603
+    "cos": -0.9451472759246826,
+    "g_true_norm": 4.410824775695801,
+    "g_model_norm": 0.7408255934715271
   },
   {
     "d_d": 50,
     "sigma_dist": 0.0,
     "dataset": "medium",
     "family": "td_error",
-    "cos": 0.6524377465248108,
-    "g_true_norm": 0.06256541609764099,
-    "g_model_norm": 0.48344549536705017
+    "cos": -0.9410823583602905,
+    "g_true_norm": 4.410824775695801,
+    "g_model_norm": 0.35861074924468994
   },
   {
     "d_d": 50,
     "sigma_dist": 0.0,
     "dataset": "medium",
     "family": "calibrated",
-    "cos": 0.5751022696495056,
-    "g_true_norm": 0.06256541609764099,
-    "g_model_norm": 1.4665278196334839
+    "cos": -0.9456689357757568,
+    "g_true_norm": 4.410824775695801,
+    "g_model_norm": 0.6303567290306091
   },
   {
     "d_d": 50,
     "sigma_dist": 0.3,
     "dataset": "random",
     "family": "mle",
-    "cos": 0.3032616972923279,
-    "g_true_norm": 0.053520604968070984,
-    "g_model_norm": 0.0038699673023074865
+    "cos": 0.8329215049743652,
+    "g_true_norm": 1.7966607809066772,
+    "g_model_norm": 0.00991318840533495
   },
   {
     "d_d": 50,
     "sigma_dist": 0.3,
     "dataset": "random",
     "family": "vagram",
-    "cos": 0.8211778402328491,
-    "g_true_norm": 0.053520604968070984,
-    "g_model_norm": 0.015588716603815556
+    "cos": 0.8002750277519226,
+    "g_true_norm": 1.7966607809066772,
+    "g_model_norm": 0.00952374842017889
   },
   {
     "d_d": 50,
     "sigma_dist": 0.3,
     "dataset": "random",
     "family": "td_error",
-    "cos": 0.7476646900177002,
-    "g_true_norm": 0.053520604968070984,
-    "g_model_norm": 0.04144929349422455
+    "cos": 0.8668901920318604,
+    "g_true_norm": 1.7966607809066772,
+    "g_model_norm": 0.018725987523794174
   },
   {
     "d_d": 50,
     "sigma_dist": 0.3,
     "dataset": "random",
     "family": "calibrated",
-    "cos": 0.7029317617416382,
-    "g_true_norm": 0.053520604968070984,
-    "g_model_norm": 0.009171749465167522
+    "cos": 0.4526674449443817,
+    "g_true_norm": 1.7966607809066772,
+    "g_model_norm": 0.009025782346725464
   },
   {
     "d_d": 50,
     "sigma_dist": 0.3,
     "dataset": "medium",
     "family": "mle",
-    "cos": 0.6125494837760925,
-    "g_true_norm": 0.053520604968070984,
-    "g_model_norm": 0.7756768465042114
+    "cos": -0.5347025990486145,
+    "g_true_norm": 1.7966607809066772,
+    "g_model_norm": 0.026939909905195236
   },
   {
     "d_d": 50,
     "sigma_dist": 0.3,
     "dataset": "medium",
     "family": "vagram",
-    "cos": -0.2243138551712036,
-    "g_true_norm": 0.053520604968070984,
-    "g_model_norm": 0.6585394144058228
+    "cos": -0.5679773688316345,
+    "g_true_norm": 1.7966607809066772,
+    "g_model_norm": 0.027951622381806374
   },
   {
     "d_d": 50,
     "sigma_dist": 0.3,
     "dataset": "medium",
     "family": "td_error",
-    "cos": -0.6737539768218994,
-    "g_true_norm": 0.053520604968070984,
-    "g_model_norm": 1.0872422456741333
+    "cos": 0.6929052472114563,
+    "g_true_norm": 1.7966607809066772,
+    "g_model_norm": 0.20538994669914246
   },
   {
     "d_d": 50,
     "sigma_dist": 0.3,
     "dataset": "medium",
     "family": "calibrated",
-    "cos": -0.1753556877374649,
-    "g_true_norm": 0.053520604968070984,
-    "g_model_norm": 0.610745906829834
+    "cos": 0.6917684078216553,
+    "g_true_norm": 1.7966607809066772,
+    "g_model_norm": 0.1446772813796997
   },
   {
     "d_d": 50,
     "sigma_dist": 0.3,
     "dataset": "random",
     "family": "mle",
-    "cos": 0.21853509545326233,
-    "g_true_norm": 0.059473760426044464,
-    "g_model_norm": 0.003747347742319107
+    "cos": 0.9797073006629944,
+    "g_true_norm": 4.729340076446533,
+    "g_model_norm": 0.0540531687438488
   },
   {
     "d_d": 50,
     "sigma_dist": 0.3,
     "dataset": "random",
     "family": "vagram",
-    "cos": 0.6677138805389404,
-    "g_true_norm": 0.059473760426044464,
-    "g_model_norm": 0.003077977802604437
+    "cos": 0.9797356724739075,
+    "g_true_norm": 4.729340076446533,
+    "g_model_norm": 0.053961001336574554
   },
   {
     "d_d": 50,
     "sigma_dist": 0.3,
     "dataset": "random",
     "family": "td_error",
-    "cos": 0.198907271027565,
-    "g_true_norm": 0.059473760426044464,
-    "g_model_norm": 0.017777472734451294
+    "cos": 0.9784689545631409,
+    "g_true_norm": 4.729340076446533,
+    "g_model_norm": 0.0544491745531559
   },
   {
     "d_d": 50,
     "sigma_dist": 0.3,
     "dataset": "random",
     "family": "calibrated",
-    "cos": -0.053702473640441895,
-    "g_true_norm": 0.059473760426044464,
-    "g_model_norm": 0.004752804059535265
+    "cos": 0.9781281352043152,
+    "g_true_norm": 4.729340076446533,
+    "g_model_norm": 0.05505125969648361
   },
   {
     "d_d": 50,
     "sigma_dist": 0.3,
     "dataset": "medium",
     "family": "mle",
-    "cos": 0.4707874655723572,
-    "g_true_norm": 0.059473760426044464,
-    "g_model_norm": 1.1966716051101685
+    "cos": -0.9448871612548828,
+    "g_true_norm": 4.729340076446533,
+    "g_model_norm": 0.325512170791626
   },
   {
     "d_d": 50,
     "sigma_dist": 0.3,
     "dataset": "medium",
     "family": "vagram",
-    "cos": 0.4683975279331207,
-    "g_true_norm": 0.059473760426044464,
-    "g_model_norm": 1.005173683166504
+    "cos": -0.9449608325958252,
+    "g_true_norm": 4.729340076446533,
+    "g_model_norm": 0.21793514490127563
   },
   {
     "d_d": 50,
     "sigma_dist": 0.3,
     "dataset": "medium",
     "family": "td_error",
-    "cos": 0.3954264521598816,
-    "g_true_norm": 0.059473760426044464,
-    "g_model_norm": 1.4008008241653442
+    "cos": -0.9457667469978333,
+    "g_true_norm": 4.729340076446533,
+    "g_model_norm": 0.14021582901477814
   },
   {
     "d_d": 50,
     "sigma_dist": 0.3,
     "dataset": "medium",
     "family": "calibrated",
-    "cos": 0.46977898478507996,
-    "g_true_norm": 0.059473760426044464,
-    "g_model_norm": 1.1964139938354492
+    "cos": -0.9482902884483337,
+    "g_true_norm": 4.729340076446533,
+    "g_model_norm": 0.20443351566791534
   }
 ]

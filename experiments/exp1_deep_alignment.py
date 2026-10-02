@@ -1,11 +1,13 @@
 """Experiment 1.1 (deep): policy-gradient cosine alignment (WP1).
 
 Measures objective mismatch between the true environment and a learned model at the
-level of the policy gradient. Using the differentiable analytic Distractor-Gym,
-``g_true`` is the exact rollout gradient of a fixed policy pi_phi under the true
-dynamics, and ``g_model`` is the same gradient with the learned ensemble dynamics
-substituted. The reported statistic is ``cos(g_true, g_model)`` per model-loss family
-(MLE, VaGraM, TD-error, calibrated) and per offline dataset (random, medium-replay SAC).
+level of the policy gradient. ``g_true`` is the exact rollout gradient of a fixed
+policy pi_phi through the real MuJoCo ``Distractor-Gym`` dynamics, differentiated
+per integrator step via ``mujoco.mjd_transitionFD`` (see
+``distractor_gym.deep.mujoco_diff``); ``g_model`` is the same gradient with the
+learned ensemble dynamics substituted. The reported statistic is
+``cos(g_true, g_model)`` per model-loss family (MLE, VaGraM, TD-error, calibrated)
+and per offline dataset (random, medium-replay SAC).
 
 Scope: the gradient-cosine diagnostic. The H1.1 policy-return claim (>=40% degradation
 of MLE) is deferred to the full model-based training loop.
@@ -19,7 +21,11 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from distractor_gym.deep.analytic import AnalyticDistractorEnv, AnalyticDistractorGym, rollout_return
+from distractor_gym.deep.mujoco_diff import (
+    MujocoDistractorEnv,
+    MujocoDistractorGym,
+    rollout_return,
+)
 from distractor_gym.deep.sac import collect_random, train_sac
 from distractor_gym.deep.trainer import fit_dynamics, fit_state_value
 from distractor_gym.deep.vjp import state_value_grad_norm
@@ -32,14 +38,17 @@ def _buffer_data(buf) -> dict:
     return buf.arrays()
 
 
-def _random_data(env: AnalyticDistractorEnv, n: int, seed: int, scripted_prob: float = 0.5) -> dict:
-    """i.i.d. one-step transitions under a mixture of random and goal-directed actions."""
+def _random_data(env: MujocoDistractorEnv, n: int, seed: int, scripted_prob: float = 0.5) -> dict:
+    """i.i.d. one-step transitions under a mixture of random and pole-stabilizing actions."""
     gen = torch.Generator().manual_seed(seed + 7)
     s = env.sample_states(n, generator=gen)
-    x, v = s[:, 0], s[:, 1]
-    a_script = torch.clamp(3.0 * (env.goal - x) - 1.0 * v, -1.0, 1.0)
-    a_rand = torch.rand(n, generator=gen, dtype=torch.float32) * 2.0 - 1.0
-    mask = (torch.rand(n, generator=gen) < scripted_prob).float()
+    nq = env.physics.nq
+    qvel = s[:, nq : env.d_c]
+    th = s[:, 1 : nq].sum(dim=-1)
+    vth = qvel[:, 1:].sum(dim=-1)
+    a_script = torch.clamp(-2.0 * th - 1.0 * vth, -1.0, 1.0)
+    a_rand = torch.rand(n, generator=gen, dtype=env.dtype) * 2.0 - 1.0
+    mask = (torch.rand(n, generator=gen) < scripted_prob).to(env.dtype)
     a = (mask * a_script + (1.0 - mask) * a_rand).unsqueeze(-1)
     with torch.no_grad():
         s2 = env.step(s, a, noise=env.sigma_dist > 0.0)
@@ -82,8 +91,21 @@ def gradient_cosine(g_true: torch.Tensor, g_model: torch.Tensor) -> float:
 
 def regime_rows(cfg: dict, d_d: int, sigma: float, seed: int) -> list[dict]:
     torch.manual_seed(cfg.get("seed", 0) + seed)
-    env = AnalyticDistractorEnv(d_d=d_d, sigma_dist=sigma, seed=seed)
-    gym_env = AnalyticDistractorGym(d_d=d_d, sigma_dist=sigma, seed=seed, horizon=cfg.get("horizon", 8))
+    env = MujocoDistractorEnv(
+        d_d=d_d,
+        sigma_dist=sigma,
+        seed=seed,
+        base_task=cfg.get("base_task", "inverted_double_pendulum"),
+        eps=cfg.get("mujoco_eps", 1e-6),
+        centered=cfg.get("mujoco_centered", True),
+    )
+    gym_env = MujocoDistractorGym(
+        d_d=d_d,
+        sigma_dist=sigma,
+        seed=seed,
+        base_task=cfg.get("base_task", "inverted_double_pendulum"),
+        horizon=cfg.get("horizon", 8),
+    )
     agent, medium = train_sac(
         gym_env,
         n_steps=cfg.get("sac_steps", 1500),
@@ -104,8 +126,14 @@ def regime_rows(cfg: dict, d_d: int, sigma: float, seed: int) -> list[dict]:
     horizon = cfg.get("horizon", 8)
     g_true = policy_gradient(env, actor, s0, horizon, gamma)
 
-    datasets = {"random": _random_data(env, cfg.get("random_steps", 2000), seed), "medium": _buffer_data(medium)}
-    families = [LossFamily(f) for f in cfg.get("loss_families", ["mle", "vagram", "td_error", "calibrated"])]
+    datasets = {
+        "random": _random_data(env, cfg.get("random_steps", 2000), seed),
+        "medium": _buffer_data(medium),
+    }
+    families = [
+        LossFamily(f)
+        for f in cfg.get("loss_families", ["mle", "vagram", "td_error", "calibrated"])
+    ]
     rows = []
     for name, data in datasets.items():
         sv = fit_state_value(
@@ -171,14 +199,22 @@ def _plot(rows: list[dict], out_dir: str) -> None:
     datasets = sorted({r["dataset"] for r in rows})
     families = sorted({r["family"] for r in rows})
     sigmas = sorted({r["sigma_dist"] for r in rows})
-    fig, axes = plt.subplots(len(datasets), len(sigmas), figsize=(4.5 * len(sigmas), 3.6 * len(datasets)), squeeze=False)
+    fig, axes = plt.subplots(
+        len(datasets),
+        len(sigmas),
+        figsize=(4.5 * len(sigmas), 3.6 * len(datasets)),
+        squeeze=False,
+    )
     for di, ds in enumerate(datasets):
         for si, sig in enumerate(sigmas):
             ax = axes[di][si]
             sub = [r for r in rows if r["dataset"] == ds and r["sigma_dist"] == sig]
             xs = sorted({r["d_d"] for r in sub})
             for fam in families:
-                y = [np.mean([r["cos"] for r in sub if r["d_d"] == d and r["family"] == fam]) for d in xs]
+                y = [
+                    np.mean([r["cos"] for r in sub if r["d_d"] == d and r["family"] == fam])
+                    for d in xs
+                ]
                 ax.plot(xs, y, marker="o", label=fam)
             ax.axhline(0.0, color="k", lw=0.5)
             ax.set_xlabel("distractor dims $d_d$")

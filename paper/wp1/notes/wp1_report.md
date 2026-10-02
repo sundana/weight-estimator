@@ -22,15 +22,25 @@ under sparse reward. Table: `paper/wp1/tables/h12_lemma.tex`.
 
 ## H1.1 — deep policy-gradient alignment
 
-MuJoCo dynamics are not differentiable, so `g_true` uses the exact analytic rollout
-gradient of the differentiable `AnalyticDistractorEnv` (`src/distractor_gym/deep/analytic.py`);
-`g_model` substitutes the fitted ensemble. Datasets are random-policy and medium-replay
-SAC (`runs/exp1_deep_alignment/alignment.json`, 96 rows). Table: `paper/wp1/tables/h11_alignment.tex`.
+`g_true` is the exact rollout policy gradient through the **real MuJoCo engine**: the
+`InvertedDoublePendulum-v4` model is switched to the Euler integrator and each
+integrator step is differentiated with `mujoco.mjd_transitionFD` inside a PyTorch
+`autograd.Function` (`src/distractor_gym/deep/mujoco_diff.py`); `g_model` substitutes
+the fitted ensemble. The policy input is the physics state `(qpos, qvel)` plus the
+`d_d` analytic distractors (the native 11-d observation is not used). Long closed-loop
+model rollouts are clipped to `y_mean +/- 6 y_std` to stop compounding-error blow-up.
+Datasets are random-policy and medium-replay SAC
+(`runs/exp1_deep_alignment/alignment.json`, 96 rows). Table: `paper/wp1/tables/h11_alignment.tex`.
 
-- Random data: alignment is high at `d_d = 0` (`cos ~ 0.79` for all families) and
-  degrades with `d_d` (0.30-0.74 at `d_d = 50`).
-- Medium-replay data: alignment is lower and mixed, sometimes negative; no family
-  dominates across distractor counts.
+- Random data: no clean distractor trend; alignment is mixed at `d_d = 0` (VaGraM
+  `0.80`, MLE `0.36`) and high (0.81-0.94) for `d_d >= 10`.
+- Medium-replay data: stable at `d_d = 10` (`cos ~ 0.94`), but alignment turns
+  **negative at `d_d = 50`** (MLE `-0.75`, VaGraM `-0.76`); `td_error` stays closest
+  to the true direction (`-0.14`). This is the objective-mismatch signature the
+  diagnostic targets.
+- The transition Jacobian and the autograd `g_true` are validated against central
+  finite differences (`tests/test_mujoco_diff.py`), and the data Gym view and the
+  differentiable rollout are verified to agree step-for-step.
 - The H1.1 **policy-return** claim (>=40% MLE degradation) is deferred to the full
   model-based training loop (WP2/WP3); this stage reports the gradient-cosine diagnostic.
 

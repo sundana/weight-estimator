@@ -7,6 +7,10 @@ d_d_list: [0, 10, 50]
 sigma_dist_list: [0.0, 0.3]
 loss_families: [mle, vagram, td_error, calibrated]
 
+base_task: inverted_double_pendulum
+mujoco_eps: 1.0e-6
+mujoco_centered: true
+
 random_steps: 2000
 sac_steps: 2000
 sac_start_steps: 400

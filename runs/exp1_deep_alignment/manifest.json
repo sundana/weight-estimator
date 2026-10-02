@@ -1,5 +1,5 @@
 {
-  "git_sha": "4a0e08a2c9eecda105807f554fea7977edb2b585",
+  "git_sha": "956e9d184523aca543875616f8031f6198a60dc0-dirty",
   "config": {
     "seed": 0,
     "gamma": 0.99,
@@ -21,6 +21,9 @@
       "td_error",
       "calibrated"
     ],
+    "base_task": "inverted_double_pendulum",
+    "mujoco_eps": 1e-06,
+    "mujoco_centered": true,
     "random_steps": 2000,
     "sac_steps": 2000,
     "sac_start_steps": 400,

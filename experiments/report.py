@@ -126,8 +126,9 @@ def h11_alignment_table(rows: list[dict]) -> str:
         r"\begin{table}[htbp]",
         r"\centering",
         r"\caption{Exp~1.1 deep policy-gradient alignment $\cos(g_{\text{true}},"
-        r" g_{\text{model}})$ on the analytic Distractor-Gym (mean over seeds and"
-        r" $\sigma_{\text{dist}}$); random and medium-replay SAC datasets.}",
+        r" g_{\text{model}})$ on the MuJoCo Distractor-Gym (differentiated via"
+        r" \texttt{mjd\_transitionFD}; mean over seeds and $\sigma_{\text{dist}}$);"
+        r" random and medium-replay SAC datasets.}",
         r"\label{tab:h11}",
         r"\begin{tabular}{ll" + "c" * len(families) + "}",
         r"\toprule",

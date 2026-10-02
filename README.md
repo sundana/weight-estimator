@@ -78,7 +78,7 @@ needs `mbrl-lib` + `dm_control` provisioning and remains planned work
 
 The repo is migrated to the WP1-WP4 plan. The tabular suite is retained as the
 ground-truth lab (H1.2); `src/distractor_gym/deep/` holds the deep Distractor-Gym
-(MuJoCo + analytic), the weighted model losses, and Exp 1.1 policy-gradient alignment;
+(MuJoCo, differentiated via `mjd_transitionFD`), the weighted model losses, and Exp 1.1 policy-gradient alignment;
 `src/distractor_gym/profiling/` holds the Exp 1.2 per-sample VJP profiling harness.
 `experiments/report.py` generates `paper/wp1/tables/*.tex` from the committed `runs/`.
 Results are summarised in `paper/wp1/notes/wp1_report.md`. Optional extras:
