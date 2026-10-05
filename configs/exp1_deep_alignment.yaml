@@ -2,10 +2,28 @@ seed: 0
 gamma: 0.99
 horizon: 8
 n_starts: 64
-n_seeds: 2
+n_seeds: 10
 d_d_list: [0, 10, 50]
 sigma_dist_list: [0.0, 0.3]
-loss_families: [mle, vagram, td_error, calibrated]
+loss_families: [mle, vaml1, vagram, td_error, calibrated, lambert]
+control_identical_loss: true
+control_d_d: 0
+clip_sigma: 6.0
+
+horizon_list: [2, 4, 8]
+horizon_d_d_list: [0, 50]
+horizon_sigma_list: [0.0, 0.3]
+
+clip_sigma_list: [2.0, 3.0, 6.0]
+clip_horizons: [4, 8]
+clip_n_seeds: 5
+clip_d_d: 50
+clip_sigma_dist: 0.0
+
+ceiling_control: true
+ceiling_sigma_list: [0.0]
+
+data_horizon: 100
 
 base_task: inverted_double_pendulum
 mujoco_eps: 1.0e-6

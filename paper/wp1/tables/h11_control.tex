@@ -1,0 +1,15 @@
+\begin{table}[htbp]
+\centering
+\caption{Exp~1.1 identical-loss control at $d_d = 0$: every family is fit with the MLE objective ($w = 1$) while retaining its label. Identical cells confirm the fitting/evaluation pipeline is deterministic, so family spread at $d_d > 0$ is attributable to the weights.}
+\label{tab:h11control}
+\begin{tabular}{lllcccccc}
+\toprule
+Dataset & $\sigma_{\text{dist}}$ & $d_d$ & mle & vaml1 & vagram & td-error & calibrated & lambert \\
+\midrule
+medium & 0.0 & 0 & $+0.1625$ & $+0.1625$ & $+0.1625$ & $+0.1625$ & $+0.1625$ & $+0.1625$ \\
+medium & 0.3 & 0 & $+0.1625$ & $+0.1625$ & $+0.1625$ & $+0.1625$ & $+0.1625$ & $+0.1625$ \\
+random & 0.0 & 0 & $+0.5251$ & $+0.5251$ & $+0.5251$ & $+0.5251$ & $+0.5251$ & $+0.5251$ \\
+random & 0.3 & 0 & $+0.5251$ & $+0.5251$ & $+0.5251$ & $+0.5251$ & $+0.5251$ & $+0.5251$ \\
+\bottomrule
+\end{tabular}
+\end{table}

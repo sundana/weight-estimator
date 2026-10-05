@@ -31,30 +31,41 @@ class ReplayBuffer:
         self.rew = np.zeros((self.capacity,), dtype=np.float32)
         self.next_obs = np.zeros((self.capacity, self.obs_dim), dtype=np.float32)
         self.done = np.zeros((self.capacity,), dtype=np.float32)
+        self.terminal = np.zeros((self.capacity,), dtype=np.float32)
         self._idx = 0
         self._size = 0
 
-    def add(self, obs, act, rew, next_obs, done) -> None:
+    def add(self, obs, act, rew, next_obs, done, terminal=None) -> None:
         i = self._idx
         self.obs[i] = obs
         self.act[i] = act
         self.rew[i] = rew
         self.next_obs[i] = next_obs
         self.done[i] = float(done)
+        self.terminal[i] = float(done) if terminal is None else float(terminal)
         self._idx = (i + 1) % self.capacity
         self._size = min(self._size + 1, self.capacity)
 
     def __len__(self) -> int:
         return self._size
 
-    def sample(self, batch_size: int, device: torch.device | str = "cpu") -> dict:
-        idx = np.random.randint(0, self._size, size=batch_size)
+    def sample(
+        self,
+        batch_size: int,
+        device: torch.device | str = "cpu",
+        rng: np.random.Generator | None = None,
+    ) -> dict:
+        if rng is None:
+            idx = np.random.randint(0, self._size, size=batch_size)
+        else:
+            idx = rng.integers(0, self._size, size=batch_size)
         return {
             "obs": torch.as_tensor(self.obs[idx], device=device),
             "act": torch.as_tensor(self.act[idx], device=device),
             "rew": torch.as_tensor(self.rew[idx], device=device),
             "next_obs": torch.as_tensor(self.next_obs[idx], device=device),
             "done": torch.as_tensor(self.done[idx], device=device),
+            "terminal": torch.as_tensor(self.terminal[idx], device=device),
         }
 
     def arrays(self) -> dict:
@@ -65,6 +76,7 @@ class ReplayBuffer:
             "rew": self.rew[:n].copy(),
             "next_obs": self.next_obs[:n].copy(),
             "done": self.done[:n].copy(),
+            "terminal": self.terminal[:n].copy(),
         }
 
     def save(self, path: str | Path) -> Path:
@@ -80,6 +92,10 @@ class ReplayBuffer:
         buf = cls(capacity=n, obs_dim=obs_dim, act_dim=data["act"].shape[1])
         for key in ("obs", "act", "rew", "next_obs", "done"):
             getattr(buf, key)[:n] = data[key]
+        if "terminal" in data:
+            buf.terminal[:n] = data["terminal"]
+        else:
+            buf.terminal[:n] = buf.done[:n]
         buf._idx = 0
         buf._size = n
         return buf
@@ -98,7 +114,7 @@ def collect_random(env, n_steps: int, seed: int = 0, action_low=None, action_hig
         act = rng.uniform(low, high).astype(np.float32).reshape(act_dim)
         next_obs, rew, term, trunc, _ = env.step(act)
         done = term or trunc
-        buf.add(obs, act, rew, next_obs, done)
+        buf.add(obs, act, rew, next_obs, done, terminal=term)
         obs = next_obs
         if done:
             obs, _ = env.reset(seed=int(rng.integers(0, 2**31)))
@@ -224,11 +240,11 @@ def train_sac(
             act = agent.select_action(obs)
         next_obs, rew, term, trunc, _ = env.step(act)
         done = term or trunc
-        buf.add(obs, act, rew, next_obs, done)
+        buf.add(obs, act, rew, next_obs, done, terminal=term)
         obs = next_obs
         if done:
             obs, _ = env.reset(seed=int(rng.integers(0, 2**31)))
         if step >= update_after and step % update_every == 0 and len(buf) >= batch_size:
             for _ in range(per_update):
-                agent.update(buf.sample(batch_size, device=agent.device))
+                agent.update(buf.sample(batch_size, device=agent.device, rng=rng))
     return agent, buf

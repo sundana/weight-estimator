@@ -37,6 +37,14 @@ Full statements and proofs: `paper/wp1/notes/theory.md`.
   collapses with `d_d` (`cos` 0.86 -> -0.08) and VAML-1/Lambert restore it; VaGraM
   (gradient-only) is unstable (Exp 1, `runs/exp1_capacity`).
 - `SNR_w` remains a positive-but-noisy predictor (Pearson ~0.25-0.34).
+- Deep policy-gradient alignment (Exp 1.1, `runs/exp1_deep_alignment`, 10 seeds, 6
+  families): seed noise dominates (medium `d_d=0` MLE `+0.16 +/- 0.65`); the model is
+  underfit at one step (`h11_quality.tex`) and the horizon sweep (`h11_horizon.tex`)
+  shows medium `d_d=0` is already misaligned (`+0.12`) at horizon 2. Paired within-seed
+  gains (`h11_paired.tex`) are `~0` for VaGraM and negative for VAML-1/Lambert, so H1.1
+  is not supported at the gradient level. Clip is non-binding (`h11_clip.tex`); the
+  identical-loss and ceiling arms confirm determinism (`h11_control.tex`). Details in
+  `wp1_report.md`.
 
 ## Phase 1c results (continuous Distractor-Gym, exp4)
 

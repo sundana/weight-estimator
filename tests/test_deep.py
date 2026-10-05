@@ -6,7 +6,7 @@ torch = pytest.importorskip("torch")
 from distractor_gym.deep.losses import model_weights, self_normalize, weighted_mse
 from distractor_gym.deep.nets import GaussianEnsemble, StateValue, SquashedGaussianActor, TwinCritic
 from distractor_gym.deep.sac import ReplayBuffer, SACAgent, collect_random
-from distractor_gym.deep.trainer import fit_dynamics
+from distractor_gym.deep.trainer import fit_dynamics, model_one_step_mse
 from distractor_gym.deep.vjp import (
     finite_difference_grad,
     per_sample_grad,
@@ -110,8 +110,15 @@ def test_fit_dynamics_smoke_vagram():
 def test_replay_buffer_roundtrip(tmp_path):
     buf = ReplayBuffer(capacity=10, obs_dim=3, act_dim=1)
     rng = np.random.default_rng(0)
-    for _ in range(5):
-        buf.add(rng.normal(size=3), rng.normal(size=1), 1.0, rng.normal(size=3), 0.0)
+    for i in range(5):
+        buf.add(
+            rng.normal(size=3),
+            rng.normal(size=1),
+            1.0,
+            rng.normal(size=3),
+            float(i % 2),
+            terminal=float(i % 3 == 0),
+        )
     assert len(buf) == 5
     batch = buf.sample(4)
     assert batch["obs"].shape == (4, 3)
@@ -120,6 +127,51 @@ def test_replay_buffer_roundtrip(tmp_path):
     loaded = ReplayBuffer.load(path)
     assert len(loaded) == 5
     assert np.allclose(loaded.obs[:5], buf.obs[:5])
+    assert np.allclose(loaded.terminal[:5], buf.terminal[:5])
+
+
+def test_fit_dynamics_all_deep_families():
+    rng = np.random.default_rng(0)
+    n, obs_dim, act_dim = 64, 3, 1
+    obs = rng.normal(size=(n, obs_dim)).astype(np.float32)
+    act = rng.normal(size=(n, act_dim)).astype(np.float32)
+    next_obs = (obs + 0.1 * rng.normal(size=(n, obs_dim))).astype(np.float32)
+    data = {
+        "obs": obs,
+        "act": act,
+        "next_obs": next_obs,
+        "rew": rng.normal(size=n).astype(np.float32),
+        "done": np.zeros(n, dtype=np.float32),
+    }
+    torch.manual_seed(0)
+    sv = StateValue(obs_dim=obs_dim, hidden=16)
+    vfn = lambda o: sv(o)
+    gfn = lambda o: state_value_grad_norm(sv, o)
+    families = [
+        LossFamily.MLE,
+        LossFamily.VAML1,
+        LossFamily.VAGRAM,
+        LossFamily.TD_ERROR,
+        LossFamily.CALIBRATED,
+        LossFamily.LAMBERT,
+    ]
+    for fam in families:
+        fd = fit_dynamics(
+            data, fam, value_fn=vfn, grad_norm_fn=gfn, n_models=2, hidden=16, epochs=1, batch_size=32
+        )
+        mse = model_one_step_mse(fd, data)
+        assert np.isfinite(mse) and mse >= 0.0
+
+
+def test_replay_buffer_sample_rng_is_deterministic():
+    buf = ReplayBuffer(capacity=8, obs_dim=1, act_dim=1)
+    for i in range(8):
+        buf.add(np.array([i]), np.array([0.0]), 0.0, np.array([i]), 0.0)
+    a = buf.sample(4, rng=np.random.default_rng(0))
+    b = buf.sample(4, rng=np.random.default_rng(0))
+    assert np.allclose(a["obs"].numpy(), b["obs"].numpy())
+    c = buf.sample(4, rng=np.random.default_rng(1))
+    assert not np.allclose(a["obs"].numpy(), c["obs"].numpy())
 
 
 def test_sac_agent_update_smoke():

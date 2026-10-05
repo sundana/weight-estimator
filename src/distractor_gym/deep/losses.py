@@ -36,6 +36,7 @@ def model_weights(
     eps_model: torch.Tensor | None = None,
     sigma_epistemic: torch.Tensor | None = None,
     delta_td: torch.Tensor | None = None,
+    V_s: torch.Tensor | None = None,
     V_sp: torch.Tensor | None = None,
     tau: float = 1.0,
     eps_reg: float = 1e-8,
@@ -46,6 +47,10 @@ def model_weights(
         if ref is None:
             raise ValueError("MLE requires a reference tensor to infer batch size")
         return torch.ones_like(ref)
+    if family == LossFamily.VAML1:
+        if V_s is None or V_sp is None:
+            raise ValueError("VAML1 requires V_s and V_sp")
+        return (V_sp - V_s).abs()
     if family == LossFamily.VAGRAM:
         if grad_norm is None:
             raise ValueError("VAGRAM requires grad_norm")

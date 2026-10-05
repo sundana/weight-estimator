@@ -27,7 +27,7 @@ from distractor_gym.deep.mujoco_diff import (
     rollout_return,
 )
 from distractor_gym.deep.sac import collect_random, train_sac
-from distractor_gym.deep.trainer import fit_dynamics, fit_state_value
+from distractor_gym.deep.trainer import fit_dynamics, fit_state_value, model_one_step_mse
 from distractor_gym.deep.vjp import state_value_grad_norm
 from distractor_gym.losses import LossFamily
 
@@ -59,6 +59,7 @@ def _random_data(env: MujocoDistractorEnv, n: int, seed: int, scripted_prob: flo
         "next_obs": s2.numpy().astype(np.float32),
         "rew": r.numpy().astype(np.float32),
         "done": np.zeros(n, dtype=np.float32),
+        "terminal": np.zeros(n, dtype=np.float32),
     }
 
 
@@ -68,7 +69,7 @@ def _torch_stats(fd):
     return x, y
 
 
-def policy_gradient(env, actor, s0, horizon, gamma, fd=None) -> torch.Tensor:
+def policy_gradient(env, actor, s0, horizon, gamma, fd=None, clip_sigma=6.0) -> torch.Tensor:
     """Flattened ``grad_phi J`` under the true dynamics (``fd=None``) or a fitted model."""
     params = [p for p in actor.parameters() if p.requires_grad]
     model, x_stats, y_stats = None, None, None
@@ -76,8 +77,18 @@ def policy_gradient(env, actor, s0, horizon, gamma, fd=None) -> torch.Tensor:
         model = fd.model
         x_stats, y_stats = _torch_stats(fd)
     value = rollout_return(
-        env, actor, s0, horizon, gamma, model=model, x_stats=x_stats, y_stats=y_stats
+        env,
+        actor,
+        s0,
+        horizon,
+        gamma,
+        model=model,
+        x_stats=x_stats,
+        y_stats=y_stats,
+        clip_sigma=clip_sigma,
     )
+    if not value.requires_grad:
+        return torch.cat([torch.zeros_like(p).reshape(-1) for p in params])
     grads = torch.autograd.grad(value, params, allow_unused=True)
     return torch.cat(
         [(g if g is not None else torch.zeros_like(p)).reshape(-1) for g, p in zip(grads, params)]
@@ -89,7 +100,8 @@ def gradient_cosine(g_true: torch.Tensor, g_model: torch.Tensor) -> float:
     return float(torch.dot(g_true, g_model) / denom) if denom > 0.0 else 0.0
 
 
-def regime_rows(cfg: dict, d_d: int, sigma: float, seed: int) -> list[dict]:
+def _prepare(cfg: dict, d_d: int, sigma: float, seed: int) -> dict:
+    """Train the shared SAC agent/replays and the rollout start states for one regime."""
     torch.manual_seed(cfg.get("seed", 0) + seed)
     env = MujocoDistractorEnv(
         d_d=d_d,
@@ -104,7 +116,7 @@ def regime_rows(cfg: dict, d_d: int, sigma: float, seed: int) -> list[dict]:
         sigma_dist=sigma,
         seed=seed,
         base_task=cfg.get("base_task", "inverted_double_pendulum"),
-        horizon=cfg.get("horizon", 8),
+        horizon=cfg.get("data_horizon", cfg.get("horizon", 8)),
     )
     agent, medium = train_sac(
         gym_env,
@@ -118,24 +130,81 @@ def regime_rows(cfg: dict, d_d: int, sigma: float, seed: int) -> list[dict]:
         n_layers=cfg.get("n_layers", 2),
     )
     random_buf = collect_random(gym_env, n_steps=cfg.get("random_steps", 2000), seed=seed)
-    actor = agent.actor
-
     gen = torch.Generator().manual_seed(seed + 999)
     s0 = env.sample_states(cfg.get("n_starts", 64), generator=gen)
-    gamma = cfg.get("gamma", 0.99)
-    horizon = cfg.get("horizon", 8)
-    g_true = policy_gradient(env, actor, s0, horizon, gamma)
-
-    datasets = {
-        "random": _random_data(env, cfg.get("random_steps", 2000), seed),
-        "medium": _buffer_data(medium),
+    return {
+        "env": env,
+        "actor": agent.actor,
+        "s0": s0,
+        "random": random_buf,
+        "datasets": {
+            "random": _random_data(env, cfg.get("random_steps", 2000), seed),
+            "medium": _buffer_data(medium),
+        },
     }
+
+
+def _row(
+    seed, d_d, sigma, dataset, family, horizon, arm, clip_sigma, g_true, g_model, one_step_mse
+):
+    true_norm = float(g_true.norm())
+    model_norm = float(g_model.norm())
+    return {
+        "seed": seed,
+        "d_d": d_d,
+        "sigma_dist": sigma,
+        "dataset": dataset,
+        "family": family,
+        "horizon": horizon,
+        "arm": arm,
+        "clip_sigma": clip_sigma,
+        "cos": gradient_cosine(g_true, g_model),
+        "g_true_norm": true_norm,
+        "g_model_norm": model_norm,
+        "grad_ratio": model_norm / true_norm if true_norm > 0.0 else None,
+        "one_step_mse": one_step_mse,
+    }
+
+
+def regime_rows(
+    cfg: dict,
+    d_d: int,
+    sigma: float,
+    seed: int,
+    force_mle: bool = False,
+    arm: str = "default",
+    horizons: list[int] | None = None,
+    clip_sigma: float | None = None,
+) -> list[dict]:
+    horizons = horizons or [cfg.get("horizon", 8)]
+    clip_sigma = cfg.get("clip_sigma", 6.0) if clip_sigma is None else clip_sigma
+    gamma = cfg.get("gamma", 0.99)
+    prep = _prepare(cfg, d_d, sigma, seed)
+    env, actor, s0 = prep["env"], prep["actor"], prep["s0"]
+    g_true = {h: policy_gradient(env, actor, s0, h, gamma) for h in horizons}
+    if arm == "ceiling":
+        return [
+            _row(
+                seed,
+                d_d,
+                sigma,
+                "true_model",
+                "true_dynamics",
+                h,
+                arm,
+                clip_sigma,
+                g_true[h],
+                g_true[h],
+                None,
+            )
+            for h in horizons
+        ]
     families = [
         LossFamily(f)
         for f in cfg.get("loss_families", ["mle", "vagram", "td_error", "calibrated"])
     ]
     rows = []
-    for name, data in datasets.items():
+    for name, data in prep["datasets"].items():
         sv = fit_state_value(
             data,
             hidden=cfg.get("hidden", 64),
@@ -148,9 +217,10 @@ def regime_rows(cfg: dict, d_d: int, sigma: float, seed: int) -> list[dict]:
         vfn = lambda o: sv(o)  # noqa: E731
         gfn = lambda o: state_value_grad_norm(sv, o)  # noqa: E731
         for fam in families:
+            fit_fam = LossFamily.MLE if force_mle else fam
             fd = fit_dynamics(
                 data,
-                fam,
+                fit_fam,
                 value_fn=vfn,
                 grad_norm_fn=gfn,
                 n_models=cfg.get("n_models", 3),
@@ -160,32 +230,100 @@ def regime_rows(cfg: dict, d_d: int, sigma: float, seed: int) -> list[dict]:
                 batch_size=cfg.get("batch_size", 256),
                 seed=seed,
             )
-            g_model = policy_gradient(env, actor, s0, horizon, gamma, fd=fd)
-            rows.append(
-                {
-                    "d_d": d_d,
-                    "sigma_dist": sigma,
-                    "dataset": name,
-                    "family": fam.value,
-                    "cos": gradient_cosine(g_true, g_model),
-                    "g_true_norm": float(g_true.norm()),
-                    "g_model_norm": float(g_model.norm()),
-                }
-            )
+            mse = model_one_step_mse(fd, data)
+            for h in horizons:
+                g_model = policy_gradient(env, actor, s0, h, gamma, fd=fd, clip_sigma=clip_sigma)
+                rows.append(
+                    _row(
+                        seed,
+                        d_d,
+                        sigma,
+                        name,
+                        fam.value,
+                        h,
+                        arm,
+                        clip_sigma,
+                        g_true[h],
+                        g_model,
+                        mse,
+                    )
+                )
     return rows
 
 
 def run(cfg: dict, out_dir: str) -> dict:
+    seeds = list(range(cfg.get("n_seeds", 2)))
+    d_ds = cfg.get("d_d_list", [0, 10, 50])
+    sigmas = cfg.get("sigma_dist_list", [0.0, 0.3])
+
     rows = []
-    for d_d in cfg.get("d_d_list", [0, 10, 50]):
-        for sigma in cfg.get("sigma_dist_list", [0.0, 0.3]):
-            for seed in range(cfg.get("n_seeds", 2)):
+    for d_d in d_ds:
+        for sigma in sigmas:
+            for seed in seeds:
                 print(f"[exp1_deep] d_d={d_d} sigma={sigma} seed={seed}", flush=True)
-                rows.extend(regime_rows(cfg, d_d, sigma, seed))
+                rows.extend(regime_rows(cfg, d_d, sigma, seed, arm="default"))
     save_manifest(cfg, out_dir)
     save_json(rows, out_dir, "alignment")
+
+    control = []
+    if cfg.get("control_identical_loss", False):
+        ctrl_dd = cfg.get("control_d_d", 0)
+        for sigma in sigmas:
+            for seed in seeds:
+                print(f"[exp1_deep] identical-loss d_d={ctrl_dd} sigma={sigma} seed={seed}", flush=True)
+                control.extend(regime_rows(cfg, ctrl_dd, sigma, seed, force_mle=True, arm="identical"))
+        save_json(control, out_dir, "alignment_control")
+
+    horizon = []
+    if cfg.get("horizon_list"):
+        for d_d in cfg.get("horizon_d_d_list", d_ds):
+            for sigma in cfg.get("horizon_sigma_list", sigmas):
+                for seed in seeds:
+                    print(f"[exp1_deep] horizon d_d={d_d} sigma={sigma} seed={seed}", flush=True)
+                    horizon.extend(
+                        regime_rows(cfg, d_d, sigma, seed, arm="horizon", horizons=cfg["horizon_list"])
+                    )
+        save_json(horizon, out_dir, "alignment_horizon")
+
+    clip = []
+    if cfg.get("clip_sigma_list"):
+        for clip_sigma in cfg["clip_sigma_list"]:
+            for seed in seeds[: cfg.get("clip_n_seeds", 5)]:
+                print(f"[exp1_deep] clip={clip_sigma} seed={seed}", flush=True)
+                clip.extend(
+                    regime_rows(
+                        cfg,
+                        cfg.get("clip_d_d", 50),
+                        cfg.get("clip_sigma_dist", 0.0),
+                        seed,
+                        arm="clip",
+                        horizons=cfg.get("clip_horizons", [4, 8]),
+                        clip_sigma=clip_sigma,
+                    )
+                )
+        save_json(clip, out_dir, "alignment_clip")
+
+    ceiling = []
+    if cfg.get("ceiling_control", False):
+        for sigma in cfg.get("ceiling_sigma_list", [0.0]):
+            for seed in seeds:
+                print(f"[exp1_deep] ceiling sigma={sigma} seed={seed}", flush=True)
+                ceiling.extend(
+                    regime_rows(cfg, 0, sigma, seed, arm="ceiling", horizons=[2, 8])
+                )
+        save_json(ceiling, out_dir, "alignment_ceiling")
+        ok = all(abs(r["cos"] - 1.0) < 1e-6 for r in ceiling)
+        print(f"[exp1_deep] ceiling cos==1 check: {ok}", flush=True)
+
     _plot(rows, out_dir)
-    return {"rows": rows, "out_dir": out_dir}
+    return {
+        "rows": rows,
+        "control": control,
+        "horizon": horizon,
+        "clip": clip,
+        "ceiling": ceiling,
+        "out_dir": out_dir,
+    }
 
 
 def _plot(rows: list[dict], out_dir: str) -> None:

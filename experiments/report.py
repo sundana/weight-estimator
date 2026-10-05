@@ -16,6 +16,31 @@ def _read(path: str):
     return json.loads(Path(path).read_text(encoding="utf-8"))
 
 
+def _mean_std(xs: list[float]) -> tuple[float, float]:
+    n = len(xs)
+    mean = sum(xs) / n
+    std = (sum((x - mean) ** 2 for x in xs) / n) ** 0.5
+    return mean, std
+
+
+_H11_FAMILIES = ["mle", "vaml1", "vagram", "td_error", "calibrated", "lambert"]
+
+
+def _families(rows: list[dict]) -> list[str]:
+    present = {r["family"] for r in rows}
+    return [f for f in _H11_FAMILIES if f in present]
+
+
+def _default_arm(rows: list[dict]) -> list[dict]:
+    return [r for r in rows if r.get("arm", "default") == "default"]
+
+
+def _median(xs: list[float]) -> float:
+    s = sorted(xs)
+    n = len(s)
+    return s[n // 2] if n % 2 else 0.5 * (s[n // 2 - 1] + s[n // 2])
+
+
 def _rad(regime: dict) -> str:
     return "sparse" if regime.get("goal_radius") is not None else "dense"
 
@@ -118,7 +143,8 @@ def h12_lemma_table(rows: list[dict]) -> str:
 
 
 def h11_alignment_table(rows: list[dict]) -> str:
-    families = ["mle", "vagram", "td_error", "calibrated"]
+    rows = _default_arm(rows)
+    families = _families(rows)
     datasets = sorted({r["dataset"] for r in rows})
     d_ds = sorted({r["d_d"] for r in rows})
     header = " & ".join(fam.replace("_", "-") for fam in families)
@@ -127,7 +153,7 @@ def h11_alignment_table(rows: list[dict]) -> str:
         r"\centering",
         r"\caption{Exp~1.1 deep policy-gradient alignment $\cos(g_{\text{true}},"
         r" g_{\text{model}})$ on the MuJoCo Distractor-Gym (differentiated via"
-        r" \texttt{mjd\_transitionFD}; mean over seeds and $\sigma_{\text{dist}}$);"
+        r" \texttt{mjd\_transitionFD}; mean $\pm$ std over seeds and $\sigma_{\text{dist}}$);"
         r" random and medium-replay SAC datasets.}",
         r"\label{tab:h11}",
         r"\begin{tabular}{ll" + "c" * len(families) + "}",
@@ -140,8 +166,207 @@ def h11_alignment_table(rows: list[dict]) -> str:
             vals = []
             for fam in families:
                 xs = [r["cos"] for r in rows if r["dataset"] == ds and r["d_d"] == d and r["family"] == fam]
-                vals.append(f"{sum(xs) / len(xs):+.3f}" if xs else "--")
+                if xs:
+                    mean, std = _mean_std(xs)
+                    vals.append(f"${mean:+.3f}\\pm{std:.3f}$")
+                else:
+                    vals.append("--")
             lines.append(f"{ds} & {d} & " + " & ".join(vals) + r" \\")
+    lines += [r"\bottomrule", r"\end{tabular}", r"\end{table}"]
+    return "\n".join(lines) + "\n"
+
+
+def _paired_deltas(rows: list[dict], ds: str, d: int, fam: str) -> list[float]:
+    seeds = sorted({r["seed"] for r in rows if r["dataset"] == ds and r["d_d"] == d})
+    diffs = []
+    for seed in seeds:
+        f = [
+            r["cos"]
+            for r in rows
+            if r["dataset"] == ds and r["d_d"] == d and r["family"] == fam and r["seed"] == seed
+        ]
+        m = [
+            r["cos"]
+            for r in rows
+            if r["dataset"] == ds and r["d_d"] == d and r["family"] == "mle" and r["seed"] == seed
+        ]
+        if f and m:
+            diffs.append(sum(f) / len(f) - sum(m) / len(m))
+    return diffs
+
+
+def h11_paired_table(rows: list[dict]) -> str:
+    rows = _default_arm(rows)
+    families = [f for f in _families(rows) if f != "mle"]
+    datasets = sorted({r["dataset"] for r in rows})
+    d_ds = sorted({r["d_d"] for r in rows})
+    header = " & ".join(fam.replace("_", "-") for fam in families)
+    lines = [
+        r"\begin{table}[htbp]",
+        r"\centering",
+        r"\caption{Exp~1.1 paired alignment gain $\Delta = \cos(\text{family}) -"
+        r" \cos(\text{MLE})$ within a seed (removes actor/data noise), mean over 10 seeds"
+        r" with paired $t$-statistic.}",
+        r"\label{tab:h11paired}",
+        r"\begin{tabular}{ll" + "c" * len(families) + "}",
+        r"\toprule",
+        f"Dataset & $d_d$ & {header} \\\\",
+        r"\midrule",
+    ]
+    for ds in datasets:
+        for d in d_ds:
+            cells = []
+            for fam in families:
+                diffs = _paired_deltas(rows, ds, d, fam)
+                if diffs:
+                    mean, std = _mean_std(diffs)
+                    if std > 1e-6:
+                        t = mean / (std / len(diffs) ** 0.5)
+                        cells.append(f"${mean:+.2f}$ ($t={t:+.1f}$)")
+                    else:
+                        cells.append(f"${mean:+.2f}$")
+                else:
+                    cells.append("--")
+            lines.append(f"{ds} & {d} & " + " & ".join(cells) + r" \\")
+    lines += [r"\bottomrule", r"\end{tabular}", r"\end{table}"]
+    return "\n".join(lines) + "\n"
+
+
+def h11_horizon_table(rows: list[dict]) -> str:
+    rows = [r for r in rows if abs(r["sigma_dist"]) < 1e-9]
+    rows = [r for r in rows if r.get("arm", "horizon") != "default"]
+    families = [f for f in _families(rows) if f in ("mle", "vagram", "td_error", "calibrated")]
+    datasets = sorted({r["dataset"] for r in rows})
+    d_ds = sorted({r["d_d"] for r in rows})
+    horizons = sorted({r["horizon"] for r in rows})
+    header = " & ".join(str(h) for h in horizons)
+    lines = [
+        r"\begin{table}[htbp]",
+        r"\centering",
+        r"\caption{Exp~1.1 alignment vs rollout horizon ($\sigma_{\text{dist}}=0$):"
+        r" $\cos(g_{\text{true}}, g_{\text{model}})$ mean over seeds. A model that is"
+        r" aligned at the shortest horizon but misaligned at horizon~8 indicates"
+        r" compounding rollout error rather than one-step underfit.}",
+        r"\label{tab:h11horizon}",
+        r"\begin{tabular}{lll" + "c" * len(horizons) + "}",
+        r"\toprule",
+        f"Dataset & $d_d$ & family & {header} \\\\",
+        r"\midrule",
+    ]
+    for ds in datasets:
+        for d in d_ds:
+            for fam in families:
+                cells = []
+                for h in horizons:
+                    xs = [
+                        r["cos"]
+                        for r in rows
+                        if r["dataset"] == ds
+                        and r["d_d"] == d
+                        and r["family"] == fam
+                        and r["horizon"] == h
+                    ]
+                    cells.append(f"${sum(xs) / len(xs):+.2f}$" if xs else "--")
+                lines.append(f"{ds} & {d} & {fam} & " + " & ".join(cells) + r" \\")
+    lines += [r"\bottomrule", r"\end{tabular}", r"\end{table}"]
+    return "\n".join(lines) + "\n"
+
+
+def h11_quality_table(rows: list[dict]) -> str:
+    rows = [r for r in _default_arm(rows) if r["family"] == "mle"]
+    datasets = sorted({r["dataset"] for r in rows})
+    d_ds = sorted({r["d_d"] for r in rows})
+    lines = [
+        r"\begin{table}[htbp]",
+        r"\centering",
+        r"\caption{Exp~1.1 diagnostic calibration (MLE model): scale-free one-step error"
+        r" $\overline{((\hat s'-s')/\sigma_y)^2}$, median gradient-norm ratio"
+        r" $\|\!g_{\text{model}}\!\|/\|\!g_{\text{true}}\!\|$, fraction of rows with a"
+        r" near-zero model gradient ($<0.1$), and mean cosine at horizon~8.}",
+        r"\label{tab:h11quality}",
+        r"\begin{tabular}{llcccc}",
+        r"\toprule",
+        r"Dataset & $d_d$ & one-step err & $\text{med}\,\|\!g\|\text{-ratio}$"
+        r" & frac $\|\!g_{\text{model}}\!\|<0.1$ & mean $\cos$ \\",
+        r"\midrule",
+    ]
+    for ds in datasets:
+        for d in d_ds:
+            sub = [r for r in rows if r["dataset"] == ds and r["d_d"] == d]
+            err = sum(r["one_step_mse"] for r in sub) / len(sub)
+            ratio = _median([r["grad_ratio"] for r in sub])
+            frac = sum(1 for r in sub if r["g_model_norm"] < 0.1) / len(sub)
+            cos = sum(r["cos"] for r in sub) / len(sub)
+            lines.append(
+                f"{ds} & {d} & {err:.2f} & {ratio:.2f} & {100 * frac:.0f}\\% & {cos:+.2f} \\\\"
+            )
+    lines += [r"\bottomrule", r"\end{tabular}", r"\end{table}"]
+    return "\n".join(lines) + "\n"
+
+
+def h11_clip_table(rows: list[dict]) -> str:
+    rows = [r for r in rows if r["horizon"] == max(x["horizon"] for x in rows)]
+    families = _families(rows)
+    clips = sorted({r["clip_sigma"] for r in rows})
+    datasets = sorted({r["dataset"] for r in rows})
+    header = " & ".join(f"{c:g}" for c in clips)
+    lines = [
+        r"\begin{table}[htbp]",
+        r"\centering",
+        r"\caption{Exp~1.1 model-rollout clip sensitivity at horizon 8, $d_d = 50$:"
+        r" mean $\cos(g_{\text{true}}, g_{\text{model}})$ vs the prediction clip"
+        r" $\pm\,k\,\sigma$ of the training band.}",
+        r"\label{tab:h11clip}",
+        r"\begin{tabular}{ll" + "c" * len(clips) + "}",
+        r"\toprule",
+        f"Dataset & family & {header} \\\\",
+        r"\midrule",
+    ]
+    for ds in datasets:
+        for fam in families:
+            cells = []
+            for c in clips:
+                xs = [
+                    r["cos"]
+                    for r in rows
+                    if r["dataset"] == ds and r["family"] == fam and r["clip_sigma"] == c
+                ]
+                cells.append(f"${sum(xs) / len(xs):+.2f}$" if xs else "--")
+            lines.append(f"{ds} & {fam} & " + " & ".join(cells) + r" \\")
+    lines += [r"\bottomrule", r"\end{tabular}", r"\end{table}"]
+    return "\n".join(lines) + "\n"
+
+
+def h11_control_table(rows: list[dict]) -> str:
+    families = _families(rows)
+    datasets = sorted({r["dataset"] for r in rows})
+    sigmas = sorted({r["sigma_dist"] for r in rows})
+    header = " & ".join(fam.replace("_", "-") for fam in families)
+    lines = [
+        r"\begin{table}[htbp]",
+        r"\centering",
+        r"\caption{Exp~1.1 identical-loss control at $d_d = 0$: every family is fit with"
+        r" the MLE objective ($w = 1$) while retaining its label. Identical cells confirm"
+        r" the fitting/evaluation pipeline is deterministic, so family spread at"
+        r" $d_d > 0$ is attributable to the weights.}",
+        r"\label{tab:h11control}",
+        r"\begin{tabular}{lll" + "c" * len(families) + "}",
+        r"\toprule",
+        f"Dataset & $\\sigma_{{\\text{{dist}}}}$ & $d_d$ & {header} \\\\",
+        r"\midrule",
+    ]
+    for ds in datasets:
+        for sig in sigmas:
+            d = sorted({r["d_d"] for r in rows if r["dataset"] == ds and r["sigma_dist"] == sig})[0]
+            vals = []
+            for fam in families:
+                xs = [
+                    r["cos"]
+                    for r in rows
+                    if r["dataset"] == ds and r["sigma_dist"] == sig and r["family"] == fam
+                ]
+                vals.append(f"${sum(xs) / len(xs):+.4f}$" if xs else "--")
+            lines.append(f"{ds} & {sig} & {d} & " + " & ".join(vals) + r" \\")
     lines += [r"\bottomrule", r"\end{tabular}", r"\end{table}"]
     return "\n".join(lines) + "\n"
 
@@ -197,6 +422,15 @@ def main(argv=None) -> int:
     for name, source, builder in [
         ("h12_lemma.tex", f"{args.runs}/exp2/part_a.json", h12_lemma_table),
         ("h11_alignment.tex", f"{args.runs}/exp1_deep_alignment/alignment.json", h11_alignment_table),
+        ("h11_paired.tex", f"{args.runs}/exp1_deep_alignment/alignment.json", h11_paired_table),
+        ("h11_quality.tex", f"{args.runs}/exp1_deep_alignment/alignment.json", h11_quality_table),
+        ("h11_control.tex", f"{args.runs}/exp1_deep_alignment/alignment_control.json", h11_control_table),
+        (
+            "h11_horizon.tex",
+            f"{args.runs}/exp1_deep_alignment/alignment_horizon.json",
+            h11_horizon_table,
+        ),
+        ("h11_clip.tex", f"{args.runs}/exp1_deep_alignment/alignment_clip.json", h11_clip_table),
     ]:
         try:
             (out / name).write_text(builder(_read(source)), encoding="utf-8")

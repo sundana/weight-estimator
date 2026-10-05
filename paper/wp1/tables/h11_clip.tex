@@ -1,0 +1,23 @@
+\begin{table}[htbp]
+\centering
+\caption{Exp~1.1 model-rollout clip sensitivity at horizon 8, $d_d = 50$: mean $\cos(g_{\text{true}}, g_{\text{model}})$ vs the prediction clip $\pm\,k\,\sigma$ of the training band.}
+\label{tab:h11clip}
+\begin{tabular}{llccc}
+\toprule
+Dataset & family & 2 & 3 & 6 \\
+\midrule
+medium & mle & $-0.21$ & $-0.21$ & $-0.21$ \\
+medium & vaml1 & $-0.22$ & $-0.22$ & $-0.22$ \\
+medium & vagram & $-0.22$ & $-0.22$ & $-0.22$ \\
+medium & td_error & $-0.21$ & $-0.21$ & $-0.21$ \\
+medium & calibrated & $-0.22$ & $-0.22$ & $-0.22$ \\
+medium & lambert & $-0.47$ & $-0.47$ & $-0.47$ \\
+random & mle & $+0.89$ & $+0.89$ & $+0.89$ \\
+random & vaml1 & $+0.89$ & $+0.89$ & $+0.89$ \\
+random & vagram & $+0.89$ & $+0.89$ & $+0.89$ \\
+random & td_error & $+0.85$ & $+0.85$ & $+0.85$ \\
+random & calibrated & $+0.88$ & $+0.88$ & $+0.88$ \\
+random & lambert & $+0.19$ & $+0.19$ & $+0.19$ \\
+\bottomrule
+\end{tabular}
+\end{table}

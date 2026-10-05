@@ -342,11 +342,13 @@ def rollout_return(
     model=None,
     x_stats: tuple | None = None,
     y_stats: tuple | None = None,
+    clip_sigma: float = 6.0,
 ) -> torch.Tensor:
     """Discounted return of the deterministic policy, differentiated through the rollout.
 
     ``model=None`` uses the true MuJoCo dynamics (``g_true``); otherwise the model
-    ensemble's differentiable mean is used (``g_model``).
+    ensemble's differentiable mean is used (``g_model``). ``clip_sigma`` bounds the
+    model prediction to the training band (``<= 0`` disables the clip).
     """
     s = s0
     total = torch.zeros(s0.shape[0], dtype=s0.dtype, device=s0.device)
@@ -356,7 +358,7 @@ def rollout_return(
         if model is None:
             s = env.step(s, a, noise=False)
         else:
-            s = _model_mean(model, s, a, x_stats, y_stats)
+            s = _model_mean(model, s, a, x_stats, y_stats, clip_sigma=clip_sigma)
     return total.mean()
 
 

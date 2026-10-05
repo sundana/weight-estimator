@@ -104,7 +104,11 @@ def fit_dynamics(
 
     ``value_fn(obs) -> (batch,)`` and ``grad_norm_fn(obs) -> (batch,)`` supply the raw
     value and ``||grad_s V||`` used by the non-MLE estimators; both are evaluated under
-    ``no_grad`` so the model loss does not back-propagate into the critic.
+    ``no_grad`` so the model loss does not back-propagate into the critic. Following the
+    WP1 weight definitions, the value and its gradient are evaluated at the *next*
+    state ``s'`` (``VAML1``/``VAGRAM``/``LAMBERT``) and the TD-error weight compares
+    ``V(s')`` against ``V(s_hat')``; only the model error ``||s_hat' - s'||`` and the
+    epistemic spread are functions of the current fit.
     """
     torch.manual_seed(seed)
     obs = np.asarray(data["obs"], dtype=np.float32)
@@ -138,14 +142,35 @@ def fit_dynamics(
                 sig = pred_raw.std(dim=1).mean(dim=-1)
                 mean_pred = pred_raw.mean(dim=1)
                 eps_model = (mean_pred - yb).norm(dim=-1)
-                grad_norm = grad_norm_fn(obs_b) if grad_norm_fn is not None else None
-                if family == LossFamily.TD_ERROR or family == LossFamily.CALIBRATED:
-                    v_sp = value_fn(obs_b)
-                    v_hat = value_fn(mean_pred)
-                    delta_td = (v_sp - v_hat).abs()
-                else:
-                    delta_td = None
-                weights = _weights(family, grad_norm, eps_model, sig, delta_td, eps_reg)
+                v_s = value_fn(obs_b) if family == LossFamily.VAML1 else None
+                v_sp = (
+                    value_fn(yb)
+                    if family
+                    in (
+                        LossFamily.VAML1,
+                        LossFamily.TD_ERROR,
+                        LossFamily.CALIBRATED,
+                        LossFamily.LAMBERT,
+                    )
+                    else None
+                )
+                v_hat = (
+                    value_fn(mean_pred)
+                    if family in (LossFamily.TD_ERROR, LossFamily.CALIBRATED)
+                    else None
+                )
+                grad_norm = (
+                    grad_norm_fn(yb)
+                    if grad_norm_fn is not None
+                    and family in (LossFamily.VAGRAM, LossFamily.CALIBRATED)
+                    else None
+                )
+                delta_td = (
+                    (v_sp - v_hat).abs() if v_sp is not None and v_hat is not None else None
+                )
+                weights = _weights(
+                    family, grad_norm, eps_model, sig, delta_td, v_s, v_sp, eps_reg
+                )
                 if w_max is not None:
                     weights = torch.clamp(weights, max=w_max)
             per_member = ((pred_raw - yb.unsqueeze(1)) ** 2).sum(dim=-1)
@@ -162,15 +187,26 @@ def fit_dynamics(
     return FittedDynamics(model, x_scaler, y_scaler, device=device)
 
 
-def _weights(family, grad_norm, eps_model, sig, delta_td, eps_reg):
+def model_one_step_mse(fd: FittedDynamics, data: dict) -> float:
+    """Scale-free one-step error: mean ``((s_hat' - s') / y_std)^2`` over batch and dims."""
+    pred = fd.predict_mean(data["obs"], data["act"])
+    target = np.asarray(data["next_obs"], dtype=np.float64)
+    return float(np.mean(((pred - target) / fd.y_scaler.std) ** 2))
+
+
+def _weights(family, grad_norm, eps_model, sig, delta_td, v_s, v_sp, eps_reg, tau=1.0):
     if family == LossFamily.MLE:
         return torch.ones_like(eps_model)
+    if family == LossFamily.VAML1:
+        return (v_sp - v_s).abs()
     if family == LossFamily.VAGRAM:
         return grad_norm
     if family == LossFamily.TD_ERROR:
         return delta_td
     if family == LossFamily.CALIBRATED:
         return grad_norm * eps_model / (sig + eps_reg)
+    if family == LossFamily.LAMBERT:
+        return torch.exp((v_sp - v_sp.max()) / tau)
     raise ValueError(f"unknown loss family: {family}")
 
 
@@ -196,7 +232,8 @@ def fit_state_value(
     obs = torch.as_tensor(np.asarray(data["obs"], dtype=np.float32), device=device)
     next_obs = torch.as_tensor(np.asarray(data["next_obs"], dtype=np.float32), device=device)
     rew = torch.as_tensor(np.asarray(data["rew"], dtype=np.float32), device=device)
-    done = torch.as_tensor(np.asarray(data.get("done", np.zeros(len(obs))), dtype=np.float32), device=device)
+    terminal = data.get("terminal", data.get("done", np.zeros(len(obs))))
+    done = torch.as_tensor(np.asarray(terminal, dtype=np.float32), device=device)
     net = StateValue(obs.shape[1], hidden=hidden, n_layers=n_layers).to(device)
     target = StateValue(obs.shape[1], hidden=hidden, n_layers=n_layers).to(device)
     target.load_state_dict(net.state_dict())
