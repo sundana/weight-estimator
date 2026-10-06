@@ -16,6 +16,7 @@ of MLE) is deferred to the full model-based training loop.
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 
 import numpy as np
@@ -284,6 +285,7 @@ def run(cfg: dict, out_dir: str) -> dict:
                         regime_rows(cfg, d_d, sigma, seed, arm="horizon", horizons=cfg["horizon_list"])
                     )
         save_json(horizon, out_dir, "alignment_horizon")
+        _plot_horizon(horizon, out_dir)
 
     clip = []
     if cfg.get("clip_sigma_list"):
@@ -302,6 +304,7 @@ def run(cfg: dict, out_dir: str) -> dict:
                     )
                 )
         save_json(clip, out_dir, "alignment_clip")
+        _plot_clip(clip, out_dir)
 
     ceiling = []
     if cfg.get("ceiling_control", False):
@@ -326,7 +329,50 @@ def run(cfg: dict, out_dir: str) -> dict:
     }
 
 
+def _mean_std(xs: list[float]) -> tuple[float, float]:
+    """Population mean and standard deviation of a non-empty sample."""
+    n = len(xs)
+    mean = sum(xs) / n
+    std = (sum((x - mean) ** 2 for x in xs) / n) ** 0.5
+    return mean, std
+
+
+def _read_json(path: Path) -> list[dict]:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _panel(ax, sub: list[dict], xkey: str, families: list[str]) -> None:
+    """Draw mean +/- std error bars over seeds plus faint per-seed trajectories."""
+    seeds = sorted({r["seed"] for r in sub})
+    for fam in families:
+        xs = sorted({r[xkey] for r in sub if r["family"] == fam})
+        if not xs:
+            continue
+        means, stds = [], []
+        for x in xs:
+            vals = [r["cos"] for r in sub if r["family"] == fam and r[xkey] == x]
+            mean, std = _mean_std(vals)
+            means.append(mean)
+            stds.append(std)
+        for seed in seeds:
+            pts = sorted(
+                [r for r in sub if r["family"] == fam and r["seed"] == seed],
+                key=lambda r: r[xkey],
+            )
+            ax.plot(
+                [r[xkey] for r in pts],
+                [r["cos"] for r in pts],
+                color="0.75",
+                lw=0.6,
+                alpha=0.4,
+                zorder=0,
+            )
+        ax.errorbar(xs, means, yerr=stds, marker="o", capsize=2, label=fam, zorder=2)
+    ax.axhline(0.0, color="k", lw=0.5)
+
+
 def _plot(rows: list[dict], out_dir: str) -> None:
+    """Main alignment grid: mean cos vs d_d per family, panels dataset x sigma_dist."""
     try:
         import matplotlib
 
@@ -347,27 +393,101 @@ def _plot(rows: list[dict], out_dir: str) -> None:
         for si, sig in enumerate(sigmas):
             ax = axes[di][si]
             sub = [r for r in rows if r["dataset"] == ds and r["sigma_dist"] == sig]
-            xs = sorted({r["d_d"] for r in sub})
-            for fam in families:
-                y = [
-                    np.mean([r["cos"] for r in sub if r["d_d"] == d and r["family"] == fam])
-                    for d in xs
-                ]
-                ax.plot(xs, y, marker="o", label=fam)
-            ax.axhline(0.0, color="k", lw=0.5)
+            _panel(ax, sub, "d_d", families)
             ax.set_xlabel("distractor dims $d_d$")
-            ax.set_ylabel(r"$\cos(g_{true}, g_{model})$")
+            ax.set_ylabel(r"$\cos(g_{\mathrm{true}}, g_{\mathrm{model}})$")
             ax.set_title(f"{ds}, sigma={sig}")
             ax.legend(fontsize=7)
     fig.tight_layout()
     save_fig(fig, out_dir, "deep_alignment")
 
 
+def _plot_horizon(rows: list[dict], out_dir: str) -> None:
+    """Alignment vs rollout horizon at sigma_dist=0, panels dataset x d_d."""
+    try:
+        import matplotlib
+
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+    except ImportError:
+        return
+    rows = [r for r in rows if abs(r["sigma_dist"]) < 1e-9]
+    datasets = sorted({r["dataset"] for r in rows})
+    d_ds = sorted({r["d_d"] for r in rows})
+    families = sorted({r["family"] for r in rows})
+    fig, axes = plt.subplots(
+        len(datasets),
+        len(d_ds),
+        figsize=(4.5 * len(d_ds), 3.6 * len(datasets)),
+        squeeze=False,
+    )
+    for di, ds in enumerate(datasets):
+        for xi, d in enumerate(d_ds):
+            ax = axes[di][xi]
+            sub = [r for r in rows if r["dataset"] == ds and r["d_d"] == d]
+            _panel(ax, sub, "horizon", families)
+            ax.set_xticks(sorted({r["horizon"] for r in sub}))
+            ax.set_xlabel("rollout horizon")
+            ax.set_ylabel(r"$\cos(g_{\mathrm{true}}, g_{\mathrm{model}})$")
+            ax.set_title(f"{ds}, $d_d$={d}")
+            ax.legend(fontsize=7)
+    fig.tight_layout()
+    save_fig(fig, out_dir, "deep_alignment_horizon")
+
+
+def _plot_clip(rows: list[dict], out_dir: str) -> None:
+    """Alignment vs prediction clip, panels dataset x horizon at d_d=50, sigma_dist=0."""
+    try:
+        import matplotlib
+
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+    except ImportError:
+        return
+    datasets = sorted({r["dataset"] for r in rows})
+    horizons = sorted({r["horizon"] for r in rows})
+    families = sorted({r["family"] for r in rows})
+    fig, axes = plt.subplots(
+        len(datasets),
+        len(horizons),
+        figsize=(4.5 * len(horizons), 3.6 * len(datasets)),
+        squeeze=False,
+    )
+    for di, ds in enumerate(datasets):
+        for hi, h in enumerate(horizons):
+            ax = axes[di][hi]
+            sub = [r for r in rows if r["dataset"] == ds and r["horizon"] == h]
+            _panel(ax, sub, "clip_sigma", families)
+            ax.set_xticks(sorted({r["clip_sigma"] for r in sub}))
+            ax.set_xlabel(r"prediction clip $\pm k \sigma$")
+            ax.set_ylabel(r"$\cos(g_{\mathrm{true}}, g_{\mathrm{model}})$")
+            ax.set_title(f"{ds}, horizon={h}")
+            ax.legend(fontsize=7)
+    fig.tight_layout()
+    save_fig(fig, out_dir, "deep_alignment_clip")
+
+
+def replot(out_dir: str) -> None:
+    """Regenerate the three alignment figures from committed JSON without re-running."""
+    base = Path(out_dir)
+    _plot(_read_json(base / "alignment.json"), out_dir)
+    _plot_horizon(_read_json(base / "alignment_horizon.json"), out_dir)
+    _plot_clip(_read_json(base / "alignment_clip.json"), out_dir)
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--config", required=True)
     ap.add_argument("--out-dir", default="runs/exp1_deep_alignment")
+    ap.add_argument(
+        "--replot",
+        action="store_true",
+        help="regenerate figures from committed JSON without re-running the experiment",
+    )
     args = ap.parse_args(argv)
+    if args.replot:
+        replot(args.out_dir)
+        return 0
     cfg = load_config(args.config)
     run(cfg, args.out_dir)
     return 0

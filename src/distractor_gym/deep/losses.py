@@ -62,7 +62,7 @@ def model_weights(
     if family == LossFamily.CALIBRATED:
         if grad_norm is None or eps_model is None or sigma_epistemic is None:
             raise ValueError("CALIBRATED requires grad_norm, eps_model and sigma_epistemic")
-        return grad_norm * eps_model / (sigma_epistemic + eps_reg)
+        return grad_norm * eps_model.detach() / (sigma_epistemic.detach() + eps_reg)
     if family == LossFamily.LAMBERT:
         if V_sp is None:
             raise ValueError("LAMBERT requires V_sp")

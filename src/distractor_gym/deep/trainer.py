@@ -124,8 +124,9 @@ def fit_dynamics(
     ).to(device)
     opt = torch.optim.Adam(model.parameters(), lr=lr)
 
-    xt = torch.as_tensor(x, dtype=torch.float32)
+    xt = torch.as_tensor(x_scaler.transform(x), dtype=torch.float32)
     yt = torch.as_tensor(next_obs, dtype=torch.float32)
+    yt_n = torch.as_tensor(y_scaler.transform(next_obs), dtype=torch.float32)
     n = len(xt)
     for epoch in range(epochs):
         perm = torch.randperm(n)
@@ -133,6 +134,7 @@ def fit_dynamics(
             idx = perm[i : i + batch_size]
             xb = xt[idx].to(device)
             yb = yt[idx].to(device)
+            yb_n = yt_n[idx].to(device)
             obs_b = torch.as_tensor(obs[idx.numpy()], device=device)
             mean_n, _ = model(xb)
             pred_raw = mean_n * torch.as_tensor(y_scaler.std, device=device) + torch.as_tensor(
@@ -173,7 +175,7 @@ def fit_dynamics(
                 )
                 if w_max is not None:
                     weights = torch.clamp(weights, max=w_max)
-            per_member = ((pred_raw - yb.unsqueeze(1)) ** 2).sum(dim=-1)
+            per_member = ((mean_n - yb_n.unsqueeze(1)) ** 2).sum(dim=-1)
             w = self_normalize(weights, eps_reg) if self_norm else weights
             loss = (w.unsqueeze(1) * per_member).mean()
             opt.zero_grad()

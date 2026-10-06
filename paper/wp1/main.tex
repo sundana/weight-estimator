@@ -24,7 +24,7 @@ pinning the config, git SHA, and library versions). The work is aligned to the W
 plan (value-aware loss stabilization and scalability for MBRL); WP1 --- the
 weight-estimator theory, mismatch diagnostics, and VJP profiling --- is complete and
 summarised in \texttt{paper/wp1/notes/wp1\_report.md}. The continuous neural transfer
-(Exp~4) is superseded by the analytic Exp~1.1 of Sec.~\ref{sec:exp11-deep}; its earlier
+(Exp~4) is superseded by the MuJoCo Exp~1.1 of Sec.~\ref{sec:exp11-deep}; its earlier
 numbers remain withdrawn.
 \end{center}
 
@@ -56,7 +56,7 @@ VAML-1/Lambert --- restores it (to $0.16$--$0.34$), whereas gradient-only VaGraM
 not; and (c)~the prediction-risk dominance of MLE is confined to the uncapacitated
 estimator (estimated-weight Bellman risk $\ge$ MLE in $100\%$ of uncapacitated regimes)
 and fails for capacity-limited fitting ($50\%$/$33\%$ for VaGraM/VAML-1). For depth we
-add (iv)~WP1 diagnostics on a differentiable analytic Distractor-Gym --- an exact
+add (iv)~WP1 diagnostics on a differentiable MuJoCo Distractor-Gym --- an exact
 policy-gradient alignment measurement (Exp~1.1) and a per-sample VJP profiling harness
 (Exp~1.2). The deep alignment degrades with the distractor count, and exact online VJP is
 dispatch-bound on commodity hardware, where stale-weight caching recovers the overhead.
@@ -107,7 +107,7 @@ This revision makes the following contributions:
   decomposition, measured with clean i.i.d.\ coverage and 10 seeds, with committed
   artifacts.
 \item \textbf{Deep diagnostics and profiling (WP1).} An exact policy-gradient alignment
-  experiment on a differentiable analytic Distractor-Gym (Exp~1.1) and a per-sample VJP
+  experiment on a differentiable MuJoCo Distractor-Gym (Exp~1.1) and a per-sample VJP
   profiling harness comparing exact \texttt{torch.func} VJP, stale-weight caching, finite
   differences, and the forward MLE baseline (Exp~1.2), with committed artifacts and the
   H1.1--H1.3 hypotheses tested.
@@ -144,7 +144,7 @@ model-Bellman inconsistency for offline pessimism.
 \textbf{Diagnostics.} Lambert et~al.~\cite{lambert2020objective} measured the correlation
 between one-step likelihood and return. We modernize this: our diagnostics are per-run
 and quantitative, covering policy-gradient alignment (tabular and, in WP1, an exact
-deep measurement on a differentiable analytic Distractor-Gym), the value-error
+deep measurement on a differentiable MuJoCo Distractor-Gym), the value-error
 decomposition, and a hardware profile of per-sample VJP computation. Porting the
 diagnostics to MBPO, DreamerV3, TD-MPC2, and VaGraM remains planned work (WP3).
 
@@ -422,22 +422,29 @@ value-aware weighting wins; raising capacity removes the pressure.
 \section{Experiment 1.1 (deep): Policy-Gradient Alignment}
 \label{sec:exp11-deep}
 
-MuJoCo dynamics are not differentiable, so the true policy gradient cannot be obtained
-by back-propagating through the real environment. We therefore build a
-\emph{differentiable analytic} Distractor-Gym (\texttt{deep/analytic.py}) with the same
-structure as the tabular suite --- a 2D damped double integrator stabilizing a goal plus
-an action-coupled, reward-irrelevant distractor block --- for which $g_{\text{true}}$ is
-the exact rollout gradient and $g_{\text{model}}$ substitutes the fitted ensemble.
-Datasets are random-policy rollouts and medium-replay SAC
-(\texttt{runs/exp1\_deep\_alignment}, 96 rows).
+MuJoCo dynamics are not differentiable through the standard bindings, so the true policy
+gradient is obtained by chaining per-step transition Jacobians of the \emph{real} engine:
+the base task is switched to the Euler integrator and each integrator step is
+differentiated with \texttt{mujoco.mjd\_transitionFD} inside a PyTorch
+\texttt{autograd.Function} (\texttt{deep/mujoco\_diff.py}). A $d_d$-dimensional analytic,
+reward-irrelevant distractor block is appended to the physics state. Here
+$g_{\text{true}}$ is the exact rollout gradient of a fixed policy through the real
+dynamics and $g_{\text{model}}$ substitutes the fitted ensemble. Datasets are
+random-policy rollouts and medium-replay SAC (\texttt{runs/exp1\_deep\_alignment}, 720
+rows). A normalization bug in the ensemble trainer (raw inputs at fit time, standardized
+inputs at inference) had left the model underfit; after the fix the $d_d = 0$ reference
+gradient is recovered.
 
 \input{tables/h11_alignment.tex}
 
-On random data, alignment is high at $d_d = 0$ ($\cos \approx 0.79$ for every family)
-and degrades with $d_d$ ($0.30$--$0.74$ at $d_d = 50$); on medium-replay SAC data it is
-lower and mixed, sometimes negative, and no family dominates across distractor counts.
-The H1.1 \emph{policy-return} claim ($\ge 40\%$ MLE degradation) is deferred to the full
-model-based training loop (WP2/WP3); this section reports the gradient diagnostic.
+At $d_d = 0$ alignment is high for MLE (medium $+0.92 \pm 0.10$, random $+0.74 \pm 0.37$),
+confirming the diagnostic. It degrades with $d_d$ (medium $+0.79$, random $+0.55$ at
+$d_d = 50$). Mean cosines are otherwise mixed, and the paired within-seed gains are
+within seed noise: only calibrated on random high $d_d$ ($+0.14$/$+0.15$) and VAML-1 at
+random $d_d = 10$ ($+0.17$) are positive, while every family is non-positive on medium at
+$d_d = 50$ and VaGraM is $\approx 0$ everywhere. The H1.1 \emph{policy-return} claim
+($\ge 40\%$ MLE degradation) is deferred to the full model-based training loop
+(WP2/WP3); this section reports the gradient diagnostic.
 
 \section{Experiment 1.2: Per-Sample VJP Profiling}
 \label{sec:exp12-profiling}
@@ -462,7 +469,7 @@ quantity (Table~\ref{tab:h13}).
 \textbf{Superseded by Exp~1.1 (Sec.~\ref{sec:exp11-deep}).} The earlier continuous
 neural transfer used reward gradients as a value proxy and a projection loss computed in
 mismatched raw vs.\ standardized coordinates. \texttt{torch} is now installed, and the
-analytic Exp~1.1 provides the corrected deep diagnostic; the original Exp~4 numbers
+MuJoCo Exp~1.1 provides the corrected deep diagnostic; the original Exp~4 numbers
 remain withdrawn.
 
 \section{Discussion}
@@ -495,7 +502,7 @@ value-aware weighting is not helping; the model is in the MLE-optimal regime.
 \item The phase diagram (Fig.~\ref{fig:phase}) has some seed-sensitive cells at larger
   capacity; more seeds and a finer capacity sweep are needed to tighten it.
 \item The tabular results are stylized. The continuous transfer (Exp~4) is superseded by
-  the analytic Exp~1.1; the original raw vs.\ standardized coordinate bug is removed by
+  the MuJoCo Exp~1.1; the original raw vs.\ standardized coordinate bug is removed by
   construction, and the earlier Exp~4 numbers stay withdrawn.
 \item The Exp~1.1 deep diagnostic measures policy-gradient \emph{alignment}, not policy
   \emph{return}; the H1.1 return claim needs the full model-based training loop.
