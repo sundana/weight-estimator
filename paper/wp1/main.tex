@@ -1,39 +1,51 @@
-\documentclass[11pt]{article}
+\documentclass{article}
 
-\usepackage[margin=1in]{geometry}
-\usepackage{amsmath, amssymb, amsthm}
-\usepackage{booktabs}
+\usepackage{microtype}
 \usepackage{graphicx}
+\usepackage{booktabs}
 \usepackage{hyperref}
+\newcommand{\theHalgorithm}{\arabic{algorithm}}
+\usepackage{icml2026}
+\usepackage{amsmath}
+\usepackage{amssymb}
 \usepackage{mathtools}
+\usepackage{amsthm}
+
+\theoremstyle{plain}
 
 \input{../shared/macros.tex}
 
-\title{Dissecting Objective Mismatch in Model-Based RL:\\
-  \large Bias-Variance Decomposition and Value-Gradient Diagnostic}
-\author{Firmansyah Sundana, Novanto Yudistira}
-\date{WP1 revision}
+\icmltitlerunning{Dissecting Objective Mismatch in Model-Based RL}
 
 \begin{document}
-\maketitle
 
-\begin{center}
-\textbf{Status:} WP1 revision, superseding the tabular-only Draft~v2. All numbers are
-produced by the committed runs under \texttt{runs/} (each with a \texttt{manifest.json}
-pinning the config, git SHA, and library versions). The work is aligned to the WP1--WP4
-plan (value-aware loss stabilization and scalability for MBRL); WP1 --- the
-weight-estimator theory, mismatch diagnostics, and VJP profiling --- is complete and
-summarised in \texttt{paper/wp1/notes/wp1\_report.md}. The continuous neural transfer
-(Exp~4) is superseded by the MuJoCo Exp~1.1 of Sec.~\ref{sec:exp11-deep}; its earlier
-numbers remain withdrawn.
-\end{center}
+\twocolumn[
+  \icmltitle{Dissecting Objective Mismatch in Model-Based RL: \\
+    Bias-Variance Decomposition and Value-Gradient Diagnostic}
+
+  \begin{icmlauthorlist}
+    \icmlauthor{Firmansyah Sundana}{aff1}
+    \icmlauthor{Novanto Yudistira}{aff1}
+  \end{icmlauthorlist}
+
+  \icmlaffiliation{aff1}{Affiliation TBD, City, Country}
+
+  \icmlcorrespondingauthor{Firmansyah Sundana}{anon.email@domain.com}
+
+  \icmlkeywords{Model-Based Reinforcement Learning, Objective Mismatch, Value-Aware
+    Model Learning, Diagnostics}
+
+  \vskip 0.3in
+]
+
+\printAffiliationsAndNotice{}
 
 \begin{abstract}
 Model-based reinforcement learning fits a dynamics model to predict the next state,
 typically by maximum likelihood, and then uses that model to improve a policy. The
-objective mismatch problem~\cite{lambert2020objective} is that the model's likelihood
+objective mismatch problem~\citep{lambert2020objective} is that the model's likelihood
 need not correlate with its ability to guide the policy. Value-aware model learning
-(VaGraM~\cite{voelcker2022vagram}) reweights the model loss by the value function, but
+(VaGraM~\citep{voelcker2022vagram}) reweights the model loss by the value function, but
 is empirically known to sometimes underperform MLE. We isolate \emph{when and why} this
 happens. We contribute (i) a corrected theory of the weighted ratio estimator $w$: the
 first-order variance penalty for value-aware weighting is
@@ -58,27 +70,33 @@ estimator (estimated-weight Bellman risk $\ge$ MLE in $100\%$ of uncapacitated r
 and fails for capacity-limited fitting ($50\%$/$33\%$ for VaGraM/VAML-1). For depth we
 add (iv)~WP1 diagnostics on a differentiable MuJoCo Distractor-Gym --- an exact
 policy-gradient alignment measurement (Exp~1.1) and a per-sample VJP profiling harness
-(Exp~1.2). The deep alignment degrades with the distractor count, and exact online VJP is
-dispatch-bound on commodity hardware, where stale-weight caching recovers the overhead.
+(Exp~1.2). The deep diagnostic is calibrated at $d_d = 0$ and degrades only modestly with
+the distractor count ($15$--$25\%$), with no value-aware family robustly beating MLE,
+while exact online VJP is dispatch-bound on commodity hardware and stale-weight caching
+recovers the overhead.\footnote{WP1 revision, superseding the tabular-only Draft~v2. All
+numbers are produced by the committed runs under \texttt{runs/} (each with a
+\texttt{manifest.json} pinning the config, git SHA, and library versions); WP1 is
+summarised in \texttt{paper/wp1/notes/wp1\_report.md}. The continuous neural transfer
+(Exp~4) is superseded by the MuJoCo Exp~1.1 of Sec.~\ref{sec:exp11-deep}; its earlier
+numbers remain withdrawn.}
 \end{abstract}
 
 \section{Introduction}
 
 Model-based RL (MBRL) is a sample-efficient framework for continuous
-control~\cite{deisenroth2011pilco,janner2019mbpo,hafner2023dreamerv3,hansen2024tdmpc2}.
+control~\citep{deisenroth2011pilco,janner2019mbpo,hafner2023dreamerv3,hansen2024tdmpc2}.
 A dynamics model is fit to predict one-step transitions and then used by a policy or
 planner. The standard objective for the model is maximum likelihood (MLE), which
-minimizes prediction error uniformly over the state space. Lambert
-et~al.~\cite{lambert2020objective} showed this objective can be \emph{mismatched} with
+minimizes prediction error uniformly over the state space. \citet{lambert2020objective} showed this objective can be \emph{mismatched} with
 the downstream goal: the one-step likelihood is not always correlated with control
 performance.
 
 A principled family of remedies --- value-aware model learning
-(VAML~\cite{farahmand2017vaml,farahmand2018itervaml}; VaGraM~\cite{voelcker2022vagram})
+(VAML~\citep{farahmand2017vaml,farahmand2018itervaml}; VaGraM~\citep{voelcker2022vagram})
 --- reweights the model loss by the value function, so that the model is accurate
 \emph{where value changes}. VaGraM showed these losses help under small model capacity
 and distracting state dimensions, yet the literature also documents regimes in which
-value-aware losses \emph{underperform} MLE~\cite{voelcker2022vagram,cvaml2025,romi2026}.
+value-aware losses \emph{underperform} MLE~\citep{voelcker2022vagram,cvaml2025,romi2026}.
 There is currently no isolated, controlled characterization of when and why value-aware
 weighting fails, and no modern diagnostic suite ported to current baselines.
 
@@ -120,28 +138,31 @@ is dominated by any estimated weighting.
 while VAML-1/Lambert restore it; gradient-only VaGraM is unstable.
 (c)~The value-aware benefit is decision-level (alignment) and does not require lower
 Bellman risk --- the two diverge under capacity limits.
-(d)~Deep (WP1): exact policy-gradient alignment (Exp~1.1) degrades with the distractor
-count on random data and is mixed on medium-replay SAC; exact per-sample VJP (Exp~1.2) is
-dispatch-bound on commodity hardware, where stale-weight caching recovers the overhead.
+(d)~Deep (WP1): after fixing a trainer normalization bug, the exact policy-gradient
+alignment diagnostic (Exp~1.1) is calibrated at $d_d = 0$ (MLE $\cos = 0.92$/$0.74$) and
+degrades by only $15$--$25\%$ to $d_d = 50$, with no value-aware family robustly beating
+MLE (paired gains within seed noise), so H1.1 is not supported at the gradient level;
+exact per-sample VJP (Exp~1.2) is dispatch-bound on commodity hardware, where
+stale-weight caching recovers the overhead.
 
 \section{Background and Related Work}
 
-\textbf{Objective mismatch.} Lambert et~al.~\cite{lambert2020objective} formalized that a
+\textbf{Objective mismatch.} \citet{lambert2020objective} formalized that a
 model trained by one-step MLE likelihood and used for control may not correlate with
 performance; they proposed an exploratory sample reweighting $w(y) = c \exp(-d(y))$.
-Wei et~al.~\cite{wei2024unified} survey the decision-aware remedies that followed.
+\citet{wei2024unified} survey the decision-aware remedies that followed.
 
-\textbf{Value-aware model learning.} Farahmand et~al.~\cite{farahmand2017vaml,farahmand2018itervaml}
+\textbf{Value-aware model learning.} \citet{farahmand2017vaml,farahmand2018itervaml}
 introduced VAML and IterVAML, replacing the model loss with the induced value error.
-VaGraM~\cite{voelcker2022vagram} uses the value gradient as the weight, and explicitly
+VaGraM~\citep{voelcker2022vagram} uses the value gradient as the weight, and explicitly
 documents two failure modes of naive value-aware learning: (a)~the loss does not account
 for exploration/coverage of the state space, and (b)~the value function is often
-non-smooth, so unbounded value-aware losses diverge. CVAML~\cite{cvaml2025} shows
-sample-based value-aware losses are uncalibrated for stochastic models; ROMI~\cite{romi2026}
-adds adaptive MLE+value weighting for offline RL. MOBILE~\cite{sun2023mobile} uses
+non-smooth, so unbounded value-aware losses diverge. CVAML~\citep{cvaml2025} shows
+sample-based value-aware losses are uncalibrated for stochastic models; ROMI~\citep{romi2026}
+adds adaptive MLE+value weighting for offline RL. MOBILE~\citep{sun2023mobile} uses
 model-Bellman inconsistency for offline pessimism.
 
-\textbf{Diagnostics.} Lambert et~al.~\cite{lambert2020objective} measured the correlation
+\textbf{Diagnostics.} \citet{lambert2020objective} measured the correlation
 between one-step likelihood and return. We modernize this: our diagnostics are per-run
 and quantitative, covering policy-gradient alignment (tabular and, in WP1, an exact
 deep measurement on a differentiable MuJoCo Distractor-Gym), the value-error
@@ -205,9 +226,11 @@ ratio,
 \end{align}
 so the expected squared value-prediction error satisfies
 \begin{equation}
+\begin{aligned}
   \mathbb{E}\!\left[\bigl(\hat{\mu}_w - \mathbb{E}[V]\bigr)^2\right]
-  = \frac{1}{n}\mathrm{Var}(V)\bigl(1 + \sigma_w^2\bigr)
-    + \mathrm{Cov}(w, V(y))^2 + O(n^{-3/2}).
+  &= \frac{1}{n}\mathrm{Var}(V)\bigl(1 + \sigma_w^2\bigr) \\
+  &\quad + \mathrm{Cov}(w, V(y))^2 + O(n^{-3/2}).
+\end{aligned}
 \end{equation}
 \end{theorem}
 
@@ -256,19 +279,19 @@ value gradient,
 \begin{equation}
   R_{\mathrm{dec}}(\hat{P})
     = \mathbb{E}_{(s,a)}\!\left[
-      \Bigl( \nabla_s V(s') \cdot 
-        \bigl( \mathbb{E}_{\hat{P}}[Y \mid s,a] - \mathbb{E}_{P^*}[Y \mid s,a] \bigr)
-      \Bigr)^2
-    \right].
+      \bigl( \nabla_s V(s') \cdot \Delta_{\hat{P}}(s,a) \bigr)^2
+    \right],
 \end{equation}
+where $\Delta_{\hat{P}}(s,a) = \mathbb{E}_{\hat{P}}[Y \mid s,a] - \mathbb{E}_{P^*}[Y \mid s,a]$.
 Applying Theorem~\ref{thm:pred} to the vector estimator gives
 \begin{equation}
 \begin{aligned}
   R_{\mathrm{dec}}(\hat{P}_w) - R_{\mathrm{dec}}(\hat{P}_{\mathrm{MLE}})
-  ={}& \underbrace{\left(\nabla V \cdot \mathrm{Cov}(w, Y)\right)^2}_{\text{value-relevance signal}}
-      - \underbrace{\lVert \nabla V\rVert^2\, \sigma_w^2\,
-        \frac{\mathrm{Var}(\lVert Y\rVert)}{n}}_{\text{weight-noise penalty}} \\
-     &+ \underbrace{\text{(weight-estimator bias term)}}_{\text{bias}}.
+  ={}& \underbrace{\bigl(\nabla V \cdot \mathrm{Cov}(w, Y)\bigr)^2}
+        _{\text{value-relevance signal}} \\
+      &- \underbrace{\lVert \nabla V\rVert^2\, \sigma_w^2\,
+        \mathrm{Var}(\lVert Y\rVert)/n}_{\text{weight-noise penalty}} \\
+      &+ \underbrace{\text{(weight-estimator bias)}}_{\text{bias}}.
 \end{aligned}
 \end{equation}
 \end{theorem}
@@ -372,17 +395,13 @@ degrade with $d_d$ (Exp~2 Part A), while VAML-1/Lambert are better behaved
   address.
 \end{itemize}
 
-\input{tables/h12_lemma.tex}
-
 \textbf{Part B (weight estimator vs policy effects), capacity-limited
 (\texttt{runs/exp2\_capacity}).} At $d_d = 2$, VAML-1 has higher alignment than MLE
 while VaGraM is unstable.
 
 The value-aware benefit is decision-level (alignment) and does not require lower
 Bellman risk --- consistent with Theorem~\ref{thm:crossover}. Table~\ref{tab:exp2b}
-reports the estimated-vs-oracle breakdown at $d_d = 2$.
-
-\input{tables/exp2_oracle.tex}
+reports the estimated-vs-oracle breakdown at $d_d = 2$ (Table~\ref{tab:exp2b}).
 
 \section{Experiment 5: Mismatch Phase Diagram}
 \label{sec:phase}
@@ -391,7 +410,7 @@ reports the estimated-vs-oracle breakdown at $d_d = 2$.
 under goal coverage with stochastic distractors and classifies each cell (best
 value-aware vs MLE, margin $0.1$).
 
-\begin{figure}[htbp]
+\begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{../../runs/exp5_phase/phase_diagram.png}
 \caption{Mismatch phase diagram. Color is best value-aware minus MLE alignment
@@ -399,7 +418,7 @@ value-aware vs MLE, margin $0.1$).
 small capacity drive MLE below the value-aware families; larger capacity removes the
 pressure. A few larger-capacity cells are seed-sensitive.}
 \label{fig:phase}
-\end{figure}
+\end{figure*}
 
 The structure is consistent: distractors push MLE down at small capacity and
 value-aware weighting wins; raising capacity removes the pressure.
@@ -429,22 +448,48 @@ differentiated with \texttt{mujoco.mjd\_transitionFD} inside a PyTorch
 \texttt{autograd.Function} (\texttt{deep/mujoco\_diff.py}). A $d_d$-dimensional analytic,
 reward-irrelevant distractor block is appended to the physics state. Here
 $g_{\text{true}}$ is the exact rollout gradient of a fixed policy through the real
-dynamics and $g_{\text{model}}$ substitutes the fitted ensemble. Datasets are
-random-policy rollouts and medium-replay SAC (\texttt{runs/exp1\_deep\_alignment}, 720
-rows). A normalization bug in the ensemble trainer (raw inputs at fit time, standardized
-inputs at inference) had left the model underfit; after the fix the $d_d = 0$ reference
-gradient is recovered.
+dynamics and $g_{\text{model}}$ substitutes the fitted ensemble (six loss families, 10
+seeds, random-policy and medium-replay SAC datasets;
+\texttt{runs/exp1\_deep\_alignment}, 720 rows). A normalization bug in the ensemble
+trainer (raw inputs at fit time, standardized inputs at every inference path) had left
+the model underfit and made the cosine optimization-limited; after the fix the
+$d_d = 0$ reference gradient is recovered. All numbers below are the corrected 10-seed
+run.
 
 \input{tables/h11_alignment.tex}
 
-At $d_d = 0$ alignment is high for MLE (medium $+0.92 \pm 0.10$, random $+0.74 \pm 0.37$),
-confirming the diagnostic. It degrades with $d_d$ (medium $+0.79$, random $+0.55$ at
-$d_d = 50$). Mean cosines are otherwise mixed, and the paired within-seed gains are
-within seed noise: only calibrated on random high $d_d$ ($+0.14$/$+0.15$) and VAML-1 at
-random $d_d = 10$ ($+0.17$) are positive, while every family is non-positive on medium at
-$d_d = 50$ and VaGraM is $\approx 0$ everywhere. The H1.1 \emph{policy-return} claim
-($\ge 40\%$ MLE degradation) is deferred to the full model-based training loop
-(WP2/WP3); this section reports the gradient diagnostic.
+\textbf{The diagnostic is calibrated at $d_d = 0$.} MLE reaches
+$\cos = +0.92 \pm 0.10$ (medium) and $+0.74 \pm 0.37$ (random); at horizon~2 (a single
+model step) it is $+0.95$/$+0.99$ and the scale-free one-step error is
+$0.00$--$0.01\,\sigma_y^2$ (Table~\ref{tab:h11quality}), so the reference gradient is
+recovered and one-step underfit no longer limits the metric. The identical-loss control
+(every family refit with $w = 1$) collapses to exactly equal cosines and the ceiling arm
+(model replaced by the true dynamics) gives $\cos = 1$ (Table~\ref{tab:h11control}),
+confirming a deterministic pipeline.
+
+\textbf{Mismatch appears at large $d_d$, but value-aware weighting does not repair it.}
+MLE degrades from $+0.92$ to $+0.79$ (medium) and $+0.74$ to $+0.55$ (random) over
+$d_d = 0 \to 50$ --- a $15$--$25\%$ drop, short of the $\ge 40\%$ H1.1 target. In the
+paired within-seed table (Table~\ref{tab:h11paired},
+$\Delta = \cos(\text{family}) - \cos(\text{MLE})$), the only positive cells are calibrated
+on random high $d_d$ ($+0.14$/$+0.15$, $t \approx 0.9$) and VAML-1 at random
+$d_d = 10$ ($+0.17$, $t = 1.5$); every other cell is non-positive, medium $d_d = 50$ is
+negative for every family ($-0.17$ to $-0.36$), and VaGraM is $\approx 0$ everywhere. The
+value-weighted $\le 10\%$ degradation half of H1.1 is therefore \emph{not} supported at
+the gradient level. On random data at high $d_d$ the model return is locally flat: the
+median gradient-norm ratio is $0.01$ and $75$--$80\%$ of rows have
+$\lVert g_{\text{model}}\rVert < 0.1$ (Table~\ref{tab:h11quality}), so the cosine is a
+weak signal there despite the small one-step error.
+
+\textbf{Horizon and clip.} Alignment is flat in horizon at $d_d = 0$ (medium
+$+0.95 \to +0.92$) and compounds downward on random ($+0.99 \to +0.74$); at $d_d = 50$
+calibrated beats MLE on random ($+0.90/+0.66/+0.67$ vs $+0.87/+0.43/+0.38$)
+(Table~\ref{tab:h11horizon}). The prediction clip is non-binding (identical cosine for
+$\pm 2/3/6\,\sigma$; Table~\ref{tab:h11clip}), so clipping is not the source of the
+residual instability.
+
+The H1.1 \emph{policy-return} claim ($\ge 40\%$ MLE degradation) is deferred to the full
+model-based training loop (WP2/WP3); this section reports the gradient diagnostic.
 
 \section{Experiment 1.2: Per-Sample VJP Profiling}
 \label{sec:exp12-profiling}
@@ -461,8 +506,6 @@ and $K = 50$ at $\sim 0.1$--$0.2\times$; finite differences cost $140$--$220\tim
 are not viable. This matches the plan's fallback (stale caching or a TD-error surrogate);
 the plan's A100/4090 target is not available, so the overhead ratio is the reportable
 quantity (Table~\ref{tab:h13}).
-
-\input{tables/h13_overhead.tex}
 
 \section{Experiment 4: Continuous Neural Transfer (superseded)}
 
@@ -487,6 +530,16 @@ value-relevance signal beats the weight-noise penalty, which fails when weights 
 degenerate. Under a capacity limit the two risks separate: weighting can help prediction
 (by reallocating capacity), but the decision-level benefit still depends on the
 weight-estimator noise.
+
+\textbf{Deep negative result.} The MuJoCo gradient diagnostic
+(Sec.~\ref{sec:exp11-deep}) only weakly supports the tabular picture. Once the ensemble
+trainer is fixed, MLE alignment is high without distractors and degrades modestly with
+$d_d$, and no value-aware family robustly improves the gradient cosine. This is consistent
+with the decision-risk criterion: with reward-irrelevant distractors
+$\nabla_{s_d} V = 0$, so the value-relevance signal vanishes and the weight-noise penalty
+leaves MLE optimal. The deep ensemble, unlike the tabular finite-capacity feature model,
+is not forced to spend capacity on the distractor directions, so reweighting has little to
+buy.
 
 \textbf{Practical rule of thumb.} Measure $\mathrm{SNR}_w$ and the gradient alignment
 during training. If $\mathrm{SNR}_w$ is low or the alignment delta is non-positive,
@@ -515,7 +568,37 @@ value-aware weighting is not helping; the model is in the MLE-optimal regime.
   (benchmark provisioning is an open item; \texttt{mbrl-lib} pins old \texttt{gym}).
 \end{itemize}
 
-\bibliographystyle{plain}
+\bibliographystyle{icml2026}
 \bibliography{../shared/references}
+
+\newpage
+\appendix
+\onecolumn
+
+\section{Additional Experiment~1.1 Tables}
+\label{app:h11}
+
+Tables~\ref{tab:h11paired}--\ref{tab:h11control} report the paired within-seed
+alignment gains, the diagnostic calibration, the horizon sweep, the prediction-clip
+sensitivity, and the identical-loss/ceiling controls for the deep policy-gradient
+diagnostic of Sec.~\ref{sec:exp11-deep}.
+
+\input{tables/h11_paired.tex}
+\input{tables/h11_quality.tex}
+\input{tables/h11_horizon.tex}
+\input{tables/h11_clip.tex}
+\input{tables/h11_control.tex}
+
+\section{Additional Theory and Diagnostic Tables}
+\label{app:tables}
+
+Table~\ref{tab:h12} gives the H1.2 decomposition fit on the uncapacitated tabular
+suite (Sec.~3); Table~\ref{tab:exp2b} the estimated-vs-oracle weight-estimator
+ablation (Sec.~4); and Table~\ref{tab:h13} the per-sample VJP overhead profile
+(Sec.~\ref{sec:exp12-profiling}).
+
+\input{tables/h12_lemma.tex}
+\input{tables/exp2_oracle.tex}
+\input{tables/h13_overhead.tex}
 
 \end{document}

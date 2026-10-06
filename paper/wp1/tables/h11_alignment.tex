@@ -1,7 +1,7 @@
-\begin{table}[htbp]
+\begin{table*}[t]
 \centering
-\caption{Exp~1.1 deep policy-gradient alignment $\cos(g_{\text{true}}, g_{\text{model}})$ on the MuJoCo Distractor-Gym (differentiated via \texttt{mjd\_transitionFD}; mean $\pm$ std over seeds and $\sigma_{\text{dist}}$); random and medium-replay SAC datasets.}
-\label{tab:h11}
+\small
+\caption{Exp~1.1 deep policy-gradient alignment $\cos(g_{\text{true}}, g_{\text{model}})$ on the MuJoCo Distractor-Gym (differentiated via \texttt{mjd\_transitionFD}; mean $\pm$ std over seeds and $\sigma_{\text{dist}}$); random and medium-replay SAC datasets.}\label{tab:h11}
 \begin{tabular}{llcccccc}
 \toprule
 Dataset & $d_d$ & mle & vaml1 & vagram & td-error & calibrated & lambert \\
@@ -14,4 +14,4 @@ random & 10 & $+0.546\pm0.580$ & $+0.715\pm0.367$ & $+0.590\pm0.542$ & $+0.443\p
 random & 50 & $+0.547\pm0.651$ & $+0.515\pm0.672$ & $+0.492\pm0.692$ & $+0.516\pm0.669$ & $+0.701\pm0.495$ & $+0.044\pm0.844$ \\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{table*}

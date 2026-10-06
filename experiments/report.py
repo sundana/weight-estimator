@@ -47,8 +47,9 @@ def _rad(regime: dict) -> str:
 
 def exp1_alignment_table(rows: list[dict]) -> str:
     lines = [
-        r"\begin{table}[htbp]",
+        r"\begin{table*}[t]",
         r"\centering",
+        r"\small",
         r"\caption{Policy-gradient alignment $\cos(g_{\text{true}}, g_{\mathrm{model}})$"
         r" under the capacity-limited model with stochastic distractors (10 seeds).}",
         r"\label{tab:exp1}",
@@ -63,7 +64,7 @@ def exp1_alignment_table(rows: list[dict]) -> str:
             f"{_rad(g)}, {r['coverage']} & {g['d_d']} & "
             f"{r['mle']:.2f} & {r['vaml1']:.2f} & {r['vagram']:.2f} & {r['lambert']:.2f} \\\\"
         )
-    lines += [r"\bottomrule", r"\end{tabular}", r"\end{table}"]
+    lines += [        r"\bottomrule", r"\end{tabular}", r"\end{table*}"]
     return "\n".join(lines) + "\n"
 
 
@@ -149,12 +150,13 @@ def h11_alignment_table(rows: list[dict]) -> str:
     d_ds = sorted({r["d_d"] for r in rows})
     header = " & ".join(fam.replace("_", "-") for fam in families)
     lines = [
-        r"\begin{table}[htbp]",
+        r"\begin{table*}[t]",
         r"\centering",
+        r"\small",
         r"\caption{Exp~1.1 deep policy-gradient alignment $\cos(g_{\text{true}},"
         r" g_{\text{model}})$ on the MuJoCo Distractor-Gym (differentiated via"
         r" \texttt{mjd\_transitionFD}; mean $\pm$ std over seeds and $\sigma_{\text{dist}}$);"
-        r" random and medium-replay SAC datasets.}",
+        r" random and medium-replay SAC datasets.}"
         r"\label{tab:h11}",
         r"\begin{tabular}{ll" + "c" * len(families) + "}",
         r"\toprule",
@@ -172,7 +174,7 @@ def h11_alignment_table(rows: list[dict]) -> str:
                 else:
                     vals.append("--")
             lines.append(f"{ds} & {d} & " + " & ".join(vals) + r" \\")
-    lines += [r"\bottomrule", r"\end{tabular}", r"\end{table}"]
+    lines += [r"\bottomrule", r"\end{tabular}", r"\end{table*}"]
     return "\n".join(lines) + "\n"
 
 
@@ -267,7 +269,9 @@ def h11_horizon_table(rows: list[dict]) -> str:
                         and r["horizon"] == h
                     ]
                     cells.append(f"${sum(xs) / len(xs):+.2f}$" if xs else "--")
-                lines.append(f"{ds} & {d} & {fam} & " + " & ".join(cells) + r" \\")
+                lines.append(
+                    f"{ds} & {d} & {fam.replace('_', '-')} & " + " & ".join(cells) + r" \\"
+                )
     lines += [r"\bottomrule", r"\end{tabular}", r"\end{table}"]
     return "\n".join(lines) + "\n"
 
@@ -332,7 +336,7 @@ def h11_clip_table(rows: list[dict]) -> str:
                     if r["dataset"] == ds and r["family"] == fam and r["clip_sigma"] == c
                 ]
                 cells.append(f"${sum(xs) / len(xs):+.2f}$" if xs else "--")
-            lines.append(f"{ds} & {fam} & " + " & ".join(cells) + r" \\")
+            lines.append(f"{ds} & {fam.replace('_', '-')} & " + " & ".join(cells) + r" \\")
     lines += [r"\bottomrule", r"\end{tabular}", r"\end{table}"]
     return "\n".join(lines) + "\n"
 
