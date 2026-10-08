@@ -19,7 +19,7 @@ Phase 0 delivers three things:
 2. **Diagnostics API** — the public functions that quantify objective mismatch and
    weight-estimator quality, as the interface between experiments and the theory.
 3. **Theory skeleton** — the statements of Lemma 1 and Theorems 1–3, written up in
-   `paper/wp1/notes/theory.md` so the empirical phases have an object to validate.
+   `paper/coval/notes/theory.md` so the empirical phases have an object to validate.
 
 The scaffolding deliberately carries no heavy dependencies: Phase 0–1b need only
 `numpy` + `pytest` (the `torch`/`mbrl-lib`/`dm_control` stack is gated behind
@@ -158,7 +158,7 @@ Both are lightweight value objects returned by the API functions.
 
 ---
 
-## 5. Theory skeleton (`paper/wp1/notes/theory.md`, `outline.md`)
+## 5. Theory skeleton (`paper/coval/notes/theory.md`, `outline.md`)
 
 Phase 0 establishes the *statements*; the proofs/validation notes are filled in
 during Phase 1a/1b. Skeleton contents:
@@ -173,7 +173,7 @@ during Phase 1a/1b. Skeleton contents:
 - **Theorem 3 (decision-risk crossover)** — the signal (`grad V * Cov(w, Y)`) vs
   penalty (`||grad V||^2 sigma_w^2 E[||Y||^2]/n`) criterion behind `SNR_w`.
 
-`paper/wp1/notes/outline.md` maps these to the paper sections (RESEARCH_PLAN.md Sec. 7).
+`paper/coval/notes/outline.md` maps these to the paper sections (RESEARCH_PLAN.md Sec. 7).
 The skeleton is intentionally provisional: `theory.md` records the empirical checks
 that later phases add next to each statement.
 
@@ -194,4 +194,4 @@ weight-family semantics, ESS). `ruff` is configured in `pyproject.toml`
 
 **Status:** Phase 0 complete. It hands off to Phase 1a the exact-machinery skeleton
 (`core.py`, `losses.py`, `diagnostics.py`) and the theory statements that Phase 1a/1b
-validate in the tabular suite (see `README.md` Status and `paper/wp1/notes/outline.md`).
+validate in the tabular suite (see `README.md` Status and `paper/coval/notes/outline.md`).

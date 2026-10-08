@@ -2,11 +2,14 @@
 
 Research scaffold, migrated to the WP1-WP4 plan in
 `C:\Users\USER\Documents\Obsidian Vault\Research Plan` (value-aware loss stabilization
-and scalability for MBRL). Current status: **WP1 complete** — the tabular ground-truth
-suite, weighted losses, exact policy-gradient machinery, the deep Distractor-Gym
-(MuJoCo + torch), the deep Exp 1.1 gradient-alignment diagnostic, and the Exp 1.2 VJP
-profiling harness are implemented and committed (`paper/wp1/notes/wp1_report.md`). WP2-WP4
-(coupled-stability theory, scaling/latent/goal-conditioned, synthesis) are planned work.
+and scalability for MBRL). Current status: **WP1 complete; WP1 and WP2 are bundled** into
+`paper/coval/` — Part I (the tabular ground-truth suite, weighted losses, exact
+policy-gradient machinery, the deep Distractor-Gym (MuJoCo + torch), the deep Exp 1.1
+gradient-alignment diagnostic, and the Exp 1.2 VJP profiling harness) is implemented and
+committed (`paper/coval/notes/wp1_report.md`); Part II (COVAL coupled-stability theory +
+stabilized algorithm, EXP 2.1-2.5) is a scaffold with no results yet, so the bundled paper
+is not submittable until Part II lands. WP3-WP4 (scaling/latent/goal-conditioned,
+synthesis) are planned work.
 
 ## Run / verify
 
@@ -27,13 +30,14 @@ profiling harness are implemented and committed (`paper/wp1/notes/wp1_report.md`
 - `src/distractor_gym/profiling/` — per-sample VJP hardware profiling harness (WP1 Exp 1.2)
 - `experiments/` — tabular (exp1/1b/2/3/5), deep (`exp1_deep_alignment`), and profiling
   (`exp1_profiling`) entry points; `configs/*.yaml` feed them (keep knobs in sync);
-  `experiments/report.py` writes `paper/wp1/tables/*.tex` from committed `runs/`
-- `paper/` — one folder per work-package paper: `wp1/` (ICML/ICLR diagnostics+profiling,
-  `main.tex`, `notes/`, `tables/`), `wp2/` (COVAL theory+algorithm), `wp3/`
-  (scaling/latent/goal-conditioned), `wp4/` (dissertation); index in `paper/README.md`,
-  shared `paper/shared/{macros.tex,references.bib}`
-- `paper/wp1/notes/theory.md` states Lemma 1, Theorems 1-3; `paper/wp1/notes/wp1_report.md`
-  records WP1 results (H1.1/H1.2/H1.3); `paper/wp1/notes/outline.md` — outline + open items
+  `experiments/report.py` writes `paper/coval/tables/*.tex` from committed `runs/`
+- `paper/` — one folder per paper: `coval/` (ICML/ICLR bundled WP1+WP2 — Part I
+  diagnostics+profiling, Part II COVAL theory+algorithm; `main.tex`, `notes/`, `tables/`),
+  `wp3/` (scaling/latent/goal-conditioned), `wp4/` (dissertation); index in
+  `paper/README.md`, shared `paper/shared/{macros.tex,references.bib}`
+- `paper/coval/notes/theory.md` states Lemma 1, Theorems 1-3; `paper/coval/notes/wp1_report.md`
+  records Part I results (H1.1/H1.2/H1.3); `paper/coval/notes/outline.md` — outline + open
+  items; `paper/coval/notes/coval_scope.md` — Part II (COVAL) scope
 
 ## Conventions
 

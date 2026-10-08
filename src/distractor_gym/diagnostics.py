@@ -178,7 +178,7 @@ def decision_crossover_snr(
     ``SNR_dec``, the threshold (default 1), and the predicted winner.
 
     Unlike the Lambert-style ``SNR_w`` proxy, this statistic is derived directly from the
-    decision-risk decomposition (paper/wp1/notes/theory.md).
+    decision-risk decomposition (paper/coval/notes/theory.md).
     """
     g = np.asarray(grad_V, dtype=float).reshape(len(w), -1)
     Y = np.asarray(next_state, dtype=float).reshape(len(w), -1)

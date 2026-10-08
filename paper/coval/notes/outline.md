@@ -1,26 +1,39 @@
-# Paper Outline
+# Paper Outline (bundled WP1+WP2 -> `paper/coval/`)
 
 Now aligned to the WP1-WP4 plan in
 `C:\Users\USER\Documents\Obsidian Vault\Research Plan` (value-aware loss stabilization
-and scalability for MBRL). WP1 status and results: `paper/wp1/notes/wp1_report.md`.
-Generated tables: `paper/wp1/tables/` (via `experiments/report.py`).
+and scalability for MBRL). Part I status and results: `paper/coval/notes/wp1_report.md`.
+Generated tables: `paper/coval/tables/` (via `experiments/report.py`).
 
-Historical: `paper/wp1/notes/archive/draft_v1.md` (superseded) and the corrected tabular
-revision `paper/wp1/notes/archive/draft_v2.md` (the pre-WP1 diagnostic-paper narrative,
+**Role:** the bundled paper has Part I = the diagnostic suite and negative result (WP1)
+and Part II = COVAL theory + stabilized algorithm (WP2). Part I does not claim a new
+failure-mode taxonomy (CVAML/VaGraM/ROMI already isolate mechanism-specific failure
+modes); it asks whether value-aware weighting can robustly beat MLE once those are
+controlled (answer: no) and identifies the weight-estimator bias-variance as the binding
+constraint. Part II turns that diagnosis into an algorithm. The bundle is not submittable
+until Part II has results. See `wp1_report.md` and `coval_scope.md`.
+
+Historical: `paper/coval/notes/archive/draft_v1.md` (superseded) and the corrected tabular
+revision `paper/coval/notes/archive/draft_v2.md` (the pre-WP1 diagnostic-paper narrative,
 retained for reference).
 
-1. Introduction — objective mismatch, value-aware learning, the missing diagnostic.
-2. Background & Related Work — Lambert; VAML/IterVAML; VaGraM; CVAML; MOBILE; decision-aware taxonomy.
-3. Theory — Lemma 1 (factorization), Theorem 1 (crossover), Theorem 2 (ESS).
+1. Introduction — objective mismatch, value-aware learning, prior failure-mode diagnoses,
+   the negative result, and the move to stabilization.
+2. Background & Related Work — Lambert; VAML/IterVAML; VaGraM; CVAML; ROMI; MOBILE;
+   decision-aware taxonomy.
+3. Theory (Part I) — Lemma 1 (factorization), Theorem 1 (prediction risk), Theorem 2 (ESS),
+   Theorem 3 (decision-risk crossover).
 4. Distractor-Gym — design, regime knobs, phase diagram.
-5. Gradient-Alignment Analysis (Exp 1).
-6. delta_TD Decomposition & Weight-Estimator Ablation (Exp 2).
-7. Benchmark — Phase 1 (MBPO/VaGraM) + Phase 2 (DreamerV3/TD-MPC2).
-8. Discussion & Conclusion.
+5. Part I experiments — gradient alignment (Exp 1), delta_TD decomposition & weight-estimator
+   ablation (Exp 2), deep alignment (Exp 1.1), VJP profiling (Exp 1.2).
+6. **Part II (COVAL)** — coupled model/critic stability theory, the stabilized algorithm,
+   EXP 2.1-2.5. *Scaffold; results pending.*
+7. Discussion & Conclusion.
 
 ## Theory write-up
 
-Full statements and proofs: `paper/wp1/notes/theory.md`.
+Part I statements and proofs: `paper/coval/notes/theory.md`. Part II (COVAL) scope:
+`paper/coval/notes/coval_scope.md`.
 
 ## Empirical results (Phase 1a/1b, tabular suite — revised)
 

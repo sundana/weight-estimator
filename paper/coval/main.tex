@@ -15,13 +15,13 @@
 
 \input{../shared/macros.tex}
 
-\icmltitlerunning{Dissecting Objective Mismatch in Model-Based RL}
+\icmltitlerunning{Objective Mismatch in MBRL: Diagnostics and COVAL}
 
 \begin{document}
 
 \twocolumn[
-  \icmltitle{Dissecting Objective Mismatch in Model-Based RL: \\
-    Bias-Variance Decomposition and Value-Gradient Diagnostic}
+  \icmltitle{Objective Mismatch in Model-Based RL: \\
+    Diagnostics and the COVAL Stabilized Algorithm}
 
   \begin{icmlauthorlist}
     \icmlauthor{Firmansyah Sundana}{aff1}
@@ -46,8 +46,15 @@ typically by maximum likelihood, and then uses that model to improve a policy. T
 objective mismatch problem~\citep{lambert2020objective} is that the model's likelihood
 need not correlate with its ability to guide the policy. Value-aware model learning
 (VaGraM~\citep{voelcker2022vagram}) reweights the model loss by the value function, but
-is empirically known to sometimes underperform MLE. We isolate \emph{when and why} this
-happens. We contribute (i) a corrected theory of the weighted ratio estimator $w$: the
+is empirically known to sometimes underperform MLE. Prior work already isolates
+\emph{mechanism-specific} failure modes --- CVAML~\citep{cvaml2025}: bias-variance of
+sample-based losses for stochastic models; VaGraM~\citep{voelcker2022vagram}: OOD
+value-gradient pathology and spurious minima; ROMI~\citep{romi2026}: offline gradient
+instability --- so we do not claim a new failure-mode taxonomy. We instead ask the
+narrower question of whether value-aware weighting can be made to \emph{robustly beat MLE}
+once those mechanisms are controlled, and we answer it in the negative; that negative
+result is the foundation for the stabilized algorithm we develop here. We
+contribute (i) a corrected theory of the weighted ratio estimator $w$: the
 first-order variance penalty for value-aware weighting is
 $\sigma_w^2\,\mathrm{Var}(V)/n$ (not $\sigma_w^2\,\mathbb{E}[V^2]/n$ as previously
 stated), and this dominance result holds only for the uncapacitated fixed estimator ---
@@ -68,15 +75,19 @@ VAML-1/Lambert --- restores it (to $0.16$--$0.34$), whereas gradient-only VaGraM
 not; and (c)~the prediction-risk dominance of MLE is confined to the uncapacitated
 estimator (estimated-weight Bellman risk $\ge$ MLE in $100\%$ of uncapacitated regimes)
 and fails for capacity-limited fitting ($50\%$/$33\%$ for VaGraM/VAML-1). For depth we
-add (iv)~WP1 diagnostics on a differentiable MuJoCo Distractor-Gym --- an exact
+add (iv)~deep diagnostics on a differentiable MuJoCo Distractor-Gym --- an exact
 policy-gradient alignment measurement (Exp~1.1) and a per-sample VJP profiling harness
 (Exp~1.2). The deep diagnostic is calibrated at $d_d = 0$ and degrades only modestly with
 the distractor count ($15$--$25\%$), with no value-aware family robustly beating MLE,
 while exact online VJP is dispatch-bound on commodity hardware and stale-weight caching
-recovers the overhead.\footnote{WP1 revision, superseding the tabular-only Draft~v2. All
-numbers are produced by the committed runs under \texttt{runs/} (each with a
-\texttt{manifest.json} pinning the config, git SHA, and library versions); WP1 is
-summarised in \texttt{paper/wp1/notes/wp1\_report.md}. The continuous neural transfer
+recovers the overhead. The negative result --- estimator noise, not the loss shape, keeps
+value-aware weighting from a robust win --- motivates COVAL (Part~II), a two-timescale,
+Lyapunov-stabilized coupled model/critic algorithm whose theory and experiments
+(EXP~2.1--2.5) are outlined here (results pending).\footnote{This revision merges the earlier WP1
+diagnostic paper with the WP2 COVAL paper and supersedes the tabular-only Draft~v2. All
+Part~I numbers are produced by the committed runs under \texttt{runs/} (each with a
+\texttt{manifest.json} pinning the config, git SHA, and library versions); Part~I is
+summarised in \texttt{paper/coval/notes/wp1\_report.md}. The continuous neural transfer
 (Exp~4) is superseded by the MuJoCo Exp~1.1 of Sec.~\ref{sec:exp11-deep}; its earlier
 numbers remain withdrawn.}
 \end{abstract}
@@ -97,8 +108,16 @@ A principled family of remedies --- value-aware model learning
 \emph{where value changes}. VaGraM showed these losses help under small model capacity
 and distracting state dimensions, yet the literature also documents regimes in which
 value-aware losses \emph{underperform} MLE~\citep{voelcker2022vagram,cvaml2025,romi2026}.
-There is currently no isolated, controlled characterization of when and why value-aware
-weighting fails, and no modern diagnostic suite ported to current baselines.
+Those failure modes, however, have already been isolated in controlled studies and are
+mechanism-specific: CVAML~\citep{cvaml2025} traces them to the bias-variance of
+sample-based losses for stochastic models; VaGraM~\citep{voelcker2022vagram} to
+value-gradient pathology in out-of-distribution states and spurious minima; and
+ROMI~\citep{romi2026} to gradient instability in the offline setting. We therefore do
+\emph{not} claim a new failure-mode taxonomy. Instead we ask whether value-aware
+weighting can be made to \emph{robustly beat MLE} once those mechanisms are controlled,
+and we answer in the negative. That negative result --- estimator noise in the weight
+$\hat{w}$, not the shape of the loss, is the binding constraint --- is the foundation for
+the stabilized algorithm (COVAL) we develop in Part~II.
 
 This revision makes the following contributions:
 
@@ -124,11 +143,16 @@ This revision makes the following contributions:
   $\lvert\delta_{\mathrm{TD}}\rvert \sim \lVert \nabla V\rVert \cdot \varepsilon_{\mathrm{model}}$
   decomposition, measured with clean i.i.d.\ coverage and 10 seeds, with committed
   artifacts.
-\item \textbf{Deep diagnostics and profiling (WP1).} An exact policy-gradient alignment
+\item \textbf{Deep diagnostics and profiling.} An exact policy-gradient alignment
   experiment on a differentiable MuJoCo Distractor-Gym (Exp~1.1) and a per-sample VJP
   profiling harness comparing exact \texttt{torch.func} VJP, stale-weight caching, finite
   differences, and the forward MLE baseline (Exp~1.2), with committed artifacts and the
   H1.1--H1.3 hypotheses tested.
+\item \textbf{COVAL: a stabilized coupled algorithm (Part~II).} Building on the
+  diagnosis, we propose COVAL, a two-timescale, Lyapunov-stabilized coupled model/critic
+  scheme that bounds the weight-estimator variance $\sigma_w^2$ via a detached target
+  critic, batch self-normalization, weight clipping, and curriculum annealing; its theory
+  and experiments (EXP~2.1--2.5) are developed in Sec.~\ref{sec:coval}.
 \end{enumerate}
 
 \textbf{Findings.}
@@ -138,12 +162,17 @@ is dominated by any estimated weighting.
 while VAML-1/Lambert restore it; gradient-only VaGraM is unstable.
 (c)~The value-aware benefit is decision-level (alignment) and does not require lower
 Bellman risk --- the two diverge under capacity limits.
-(d)~Deep (WP1): after fixing a trainer normalization bug, the exact policy-gradient
+(d)~Deep: after fixing a trainer normalization bug, the exact policy-gradient
 alignment diagnostic (Exp~1.1) is calibrated at $d_d = 0$ (MLE $\cos = 0.92$/$0.74$) and
 degrades by only $15$--$25\%$ to $d_d = 50$, with no value-aware family robustly beating
 MLE (paired gains within seed noise), so H1.1 is not supported at the gradient level;
 exact per-sample VJP (Exp~1.2) is dispatch-bound on commodity hardware, where
 stale-weight caching recovers the overhead.
+(e)~Synthesis: the value-aware advantage is not a robust property of the loss shape but a
+conditional, decision-level effect that is fragile to weight-estimator noise. The
+diagnostic half therefore serves as a foundation and negative result, motivating the
+stabilized coupled algorithm (COVAL) of Part~II (Sec.~\ref{sec:coval}) rather than
+claiming a new failure-mode taxonomy.
 
 \section{Background and Related Work}
 
@@ -160,11 +189,14 @@ for exploration/coverage of the state space, and (b)~the value function is often
 non-smooth, so unbounded value-aware losses diverge. CVAML~\citep{cvaml2025} shows
 sample-based value-aware losses are uncalibrated for stochastic models; ROMI~\citep{romi2026}
 adds adaptive MLE+value weighting for offline RL. MOBILE~\citep{sun2023mobile} uses
-model-Bellman inconsistency for offline pessimism.
+model-Bellman inconsistency for offline pessimism. Each of these isolates a distinct,
+mechanism-specific failure mode, but none asks whether value-aware weighting can be made
+to \emph{robustly beat MLE} once those mechanisms are controlled; our negative answer,
+and the estimator-level explanation for it, are what feed the COVAL algorithm of Part~II.
 
 \textbf{Diagnostics.} \citet{lambert2020objective} measured the correlation
 between one-step likelihood and return. We modernize this: our diagnostics are per-run
-and quantitative, covering policy-gradient alignment (tabular and, in WP1, an exact
+and quantitative, covering policy-gradient alignment (tabular and an exact
 deep measurement on a differentiable MuJoCo Distractor-Gym), the value-error
 decomposition, and a hardware profile of per-sample VJP computation. Porting the
 diagnostics to MBPO, DreamerV3, TD-MPC2, and VaGraM remains planned work (WP3).
@@ -184,7 +216,7 @@ with MLE the special case $w = 1$. Value-aware weights: $w = \lvert V(s') - V(s)
 $w = \exp\bigl((V(s') - V_{\max})/\tau\bigr)$ (Lambert). The weight is never known; it
 is estimated from a data-dependent value estimate, so
 $\hat{w} = w(\hat{V}, \nabla \hat{V})$ has bias and variance. Full statements and proofs
-in \texttt{paper/wp1/notes/theory.md}.
+in \texttt{paper/coval/notes/theory.md}.
 
 \begin{lemma}[decomposition]
 \label{lem:decomp}
@@ -489,7 +521,7 @@ $\pm 2/3/6\,\sigma$; Table~\ref{tab:h11clip}), so clipping is not the source of 
 residual instability.
 
 The H1.1 \emph{policy-return} claim ($\ge 40\%$ MLE degradation) is deferred to the full
-model-based training loop (WP2/WP3); this section reports the gradient diagnostic.
+model-based training loop (Part~II / WP3); this section reports the gradient diagnostic.
 
 \section{Experiment 1.2: Per-Sample VJP Profiling}
 \label{sec:exp12-profiling}
@@ -506,6 +538,38 @@ and $K = 50$ at $\sim 0.1$--$0.2\times$; finite differences cost $140$--$220\tim
 are not viable. This matches the plan's fallback (stale caching or a TD-error surrogate);
 the plan's A100/4090 target is not available, so the overhead ratio is the reportable
 quantity (Table~\ref{tab:h13}).
+
+\section{Part II: COVAL --- Stabilized Coupled Value-Aware Dynamics}
+\label{sec:coval}
+
+\textbf{Status.} Part~I showed that value-aware weighting is not a robust win over MLE and
+identified the bias-variance of the estimated weight $\hat{w}$ as the binding constraint.
+Part~II turns that diagnosis into an algorithm. The coupled model/critic system is treated
+as a two-timescale stochastic-approximation scheme; the goal is to bound the
+weight-estimator variance $\sigma_w^2$ and keep the coupled iterates stable under a
+constant step size. The theory and experiments below are the planned contribution of this
+part; results are pending (EXP~2.1--2.5).
+
+\subsection{Coupled model/critic stability}
+\label{sec:coval-theory}
+We analyze the model and critic updates as a two-timescale ODE system and derive a
+non-asymptotic tracking-error bound and a Lyapunov drift condition under constant step
+sizes, characterizing the learning-rate ratio that keeps the coupled iterates bounded.
+
+\subsection{The COVAL algorithm}
+\label{sec:coval-alg}
+COVAL stabilizes the coupled system with four primitives: a \emph{detached target
+critic} (so the model does not chase the value it is simultaneously training),
+\emph{batch self-normalization} of the weights (fixing the effective learning rate),
+\emph{weight clipping} (bounding gradient spikes from critic singularities), and
+\emph{curriculum annealing} of the value-awareness. These directly target the
+$\sigma_w^2$ penalty of Theorem~\ref{thm:pred}.
+
+\subsection{Planned experiments (EXP 2.1--2.5)}
+\label{sec:coval-exp}
+Learning-rate ratio, Polyak target, normalization, clipping, and spectral normalization
+ablations, with Lyapunov/Jacobian logging on Distractor-Gym and MuJoCo. \emph{Results
+pending.}
 
 \section{Experiment 4: Continuous Neural Transfer (superseded)}
 
@@ -541,6 +605,16 @@ leaves MLE optimal. The deep ensemble, unlike the tabular finite-capacity featur
 is not forced to spend capacity on the distractor directions, so reweighting has little to
 buy.
 
+\textbf{From diagnosis to stabilization.} The diagnosis exposes two levers:
+the weight-estimator variance $\sigma_w^2$ and the coupling between the value target and
+the model it trains. Both are addressed by the two-timescale, Lyapunov-drift
+stabilization of COVAL (Part~II): it detaches the target critic,
+self-normalizes and clips the weights to bound $\sigma_w^2$, and anneals the
+value-awareness over training so the model does not chase a moving, noisy value. Part~I
+thus plays the role of a controlled diagnostic foundation and negative result --- it pins
+the regime where naive value-aware weighting cannot beat MLE and identifies the quantity a
+stabilized algorithm must control.
+
 \textbf{Practical rule of thumb.} Measure $\mathrm{SNR}_w$ and the gradient alignment
 during training. If $\mathrm{SNR}_w$ is low or the alignment delta is non-positive,
 value-aware weighting is not helping; the model is in the MLE-optimal regime.
@@ -548,6 +622,9 @@ value-aware weighting is not helping; the model is in the MLE-optimal regime.
 \section{Limitations and Future Work}
 
 \begin{itemize}
+\item \textbf{Part~II is incomplete.} The COVAL coupled-stability theory, the algorithm,
+  and the experiments (EXP~2.1--2.5) have no results yet; Part~I (the diagnostics and the
+  weight-estimator theory) is the validated, committed portion of this paper.
 \item The $\mathrm{SNR}_w$ crossover statistic is a positive-but-noisy predictor, and
   the derived $\mathrm{SNR}_{\mathrm{dec}}$ is not calibrated (predicts value-aware-win
   in $100\%$ of regimes; AUC no better than $\mathrm{SNR}_w$). A closed-form threshold
