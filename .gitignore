@@ -34,3 +34,9 @@ paper/**/*.pdf
 
 # replicate paper
 replicate/*/paper
+
+# Phase E (ROMBRL) provisioning artifacts
+.venv-rombri
+benchmark/rombri/readiness.json
+benchmark/rombri/logs/
+replicate/rombri/vendor/

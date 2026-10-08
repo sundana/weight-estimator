@@ -1,0 +1,10 @@
+# Core Python dependencies for the ROMBRL D4RL/Tokamak reproduction (Phase E).
+# D4RL is installed separately from git in provision.sh (Farama-maintained fork);
+# torch is installed by provision.sh so the CUDA/CPU wheel can be selected.
+#
+# NOTE: numpy<2 and an older gym/gymnasium range are required by D4RL/mujoco-py.
+numpy<2
+mujoco>=3.1,<4
+gymnasium>=0.29,<1.2
+dm-control
+rliable>=1.0.2
