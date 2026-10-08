@@ -82,6 +82,30 @@ def idp_reward(qpos: torch.Tensor, qvel: torch.Tensor) -> torch.Tensor:
     return 10.0 - dist_penalty - vel_penalty
 
 
+def idp_reward_goal(qpos: torch.Tensor, qvel: torch.Tensor, sigma: float = 0.25) -> torch.Tensor:
+    """Narrow goal reward ``exp(-d^2 / (2 sigma^2))`` around the upright tip.
+
+    ``d`` is the analytic tip distance to the goal ``(tip_x, tip_z) = (0, 2)``. A small
+    ``sigma`` concentrates reward near the goal, creating the sharp value cliff (large
+    ``||grad_s V||`` and high weight variance) that the crossover criterion identifies as
+    the value-aware-win regime, while staying differentiable for the policy gradient.
+    """
+    x_cart = qpos[..., 0]
+    th1 = qpos[..., 1]
+    th2 = qpos[..., 2]
+    tip_x = x_cart + _IDP_LINK * (torch.sin(th1 + th2) + torch.sin(th1))
+    tip_z = _IDP_LINK * (torch.cos(th1 + th2) + torch.cos(th1))
+    d2 = tip_x**2 + (tip_z - 2.0) ** 2
+    return torch.exp(-0.5 * d2 / sigma**2)
+
+
+def _goal_reward_np(qpos: np.ndarray, qvel: np.ndarray, sigma: float) -> float:
+    """NumPy narrow goal reward for the Gymnasium data-generating view."""
+    x_cart = qpos[0] + _IDP_LINK * (np.sin(qpos[1] + qpos[2]) + np.sin(qpos[1]))
+    tip_z = _IDP_LINK * (np.cos(qpos[1] + qpos[2]) + np.cos(qpos[1]))
+    return float(np.exp(-0.5 * (x_cart**2 + (tip_z - 2.0) ** 2) / sigma**2))
+
+
 def idp_terminated(qpos: torch.Tensor) -> torch.Tensor:
     """Native termination indicator ``tip_z <= 1`` (unused by the fixed-horizon rollout)."""
     th1 = qpos[..., 1]
@@ -209,6 +233,8 @@ class MujocoDistractorEnv:
         eps: float = 1e-6,
         centered: bool = True,
         dtype: torch.dtype = torch.float32,
+        reward_mode: str = "dense",
+        goal_sigma: float = 0.25,
     ) -> None:
         self.physics = MujocoPhysics(base_task, eps=eps, centered=centered)
         self.base_task = base_task
@@ -223,11 +249,15 @@ class MujocoDistractorEnv:
         self.B = torch.as_tensor(action_matrix, dtype=dtype)
         self.reward_fn = _REWARDS[base_task]
         self.terminated_fn = _TERMINATED[base_task]
+        self.reward_mode = reward_mode
+        self.goal_sigma = float(goal_sigma)
 
     def reward(self, s: torch.Tensor, a: torch.Tensor) -> torch.Tensor:
-        """Dense control reward, shape ``(batch,)``; independent of the distractor block."""
+        """Control reward, shape ``(batch,)``; independent of the distractor block."""
         qpos = s[..., : self.physics.nq]
         qvel = s[..., self.physics.nq : self.d_c]
+        if self.reward_mode == "goal":
+            return idp_reward_goal(qpos, qvel, sigma=self.goal_sigma)
         return self.reward_fn(qpos, qvel)
 
     def step(self, s: torch.Tensor, a: torch.Tensor, noise: bool = False) -> torch.Tensor:
@@ -276,6 +306,8 @@ class MujocoDistractorGym:
         seed: int = 0,
         base_task: str = _IDP,
         horizon: int = 100,
+        reward_mode: str = "dense",
+        goal_sigma: float = 0.25,
     ) -> None:
         gym = _import_gym()
         mujoco = _import_mujoco()
@@ -290,6 +322,8 @@ class MujocoDistractorGym:
         self.sigma_dist = float(sigma_dist)
         self.horizon = int(horizon)
         self.base_task = base_task
+        self.reward_mode = reward_mode
+        self.goal_sigma = float(goal_sigma)
         self.observation_space = gym.spaces.Box(
             low=-np.inf,
             high=np.inf,
@@ -318,6 +352,11 @@ class MujocoDistractorGym:
             if self.sigma_dist > 0.0:
                 drive = drive + self._rng.normal(0.0, self.sigma_dist, size=self.d_d)
             self._s_d = np.tanh(drive)
+        if self.reward_mode == "goal":
+            data = self.base.unwrapped.data
+            qpos = np.asarray(data.qpos, dtype=np.float64)
+            qvel = np.asarray(data.qvel, dtype=np.float64)
+            reward = _goal_reward_np(qpos, qvel, self.goal_sigma)
         self._t += 1
         truncated = bool(truncated) or self._t >= self.horizon
         return self._obs(), float(reward), bool(terminated), truncated, info

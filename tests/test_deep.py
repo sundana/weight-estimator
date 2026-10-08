@@ -218,3 +218,29 @@ def test_deep_alignment_gradient_cosine_smoke():
     g_model = policy_gradient(env, actor, s0, horizon=4, gamma=0.99, fd=fd)
     cos = gradient_cosine(g_true, g_model)
     assert -1.0 <= cos <= 1.0
+
+
+def test_decision_relevance_self_alignment_and_restore():
+    import pathlib
+    import sys
+
+    pytest.importorskip("mujoco")
+
+    sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
+    from experiments.exp1_deep_alignment import (
+        decision_relevance,
+        policy_gradient,
+        policy_return,
+    )
+    from distractor_gym.deep.mujoco_diff import MujocoDistractorEnv
+
+    env = MujocoDistractorEnv(d_d=2, sigma_dist=0.0, seed=0)
+    actor = SACAgent(obs_dim=env.dim, act_dim=1, hidden=16).actor
+    s0 = env.sample_states(8)
+    base = policy_return(env, actor, s0, horizon=3, gamma=0.99)
+    g = policy_gradient(env, actor, s0, horizon=3, gamma=0.99)
+    dec = decision_relevance(env, actor, s0, 3, 0.99, g, g, step=0.05, seed=0)
+    assert {"d_true", "d_model", "d_rand", "decision_ratio"}.issubset(dec)
+    assert dec["decision_ratio"] == pytest.approx(1.0, abs=1e-6)
+    assert np.isfinite(dec["d_true"]) and np.isfinite(dec["d_model"])
+    assert policy_return(env, actor, s0, horizon=3, gamma=0.99) == pytest.approx(base)

@@ -18,13 +18,23 @@ def make_mlp(
     hidden: int = 256,
     n_layers: int = 2,
     activation: type[nn.Module] = nn.SiLU,
+    bottleneck: int | None = None,
 ) -> nn.Sequential:
-    """Plain MLP trunk ``in_dim -> hidden x n_layers -> out_dim``."""
+    """MLP trunk ``in_dim -> hidden x n_layers -> [bottleneck] -> out_dim``.
+
+    ``bottleneck`` inserts a reduced-rank linear+activation layer after the hidden
+    trunk, giving an explicit capacity limit (the deep analogue of the tabular
+    feature-budget model) so that distractors compete with control-relevant
+    directions for representational budget.
+    """
     layers: list[nn.Module] = []
     last = in_dim
     for _ in range(n_layers):
         layers += [nn.Linear(last, hidden), activation()]
         last = hidden
+    if bottleneck is not None:
+        layers += [nn.Linear(last, bottleneck), activation()]
+        last = bottleneck
     layers.append(nn.Linear(last, out_dim))
     return nn.Sequential(*layers)
 
@@ -44,12 +54,19 @@ class GaussianEnsemble(nn.Module):
         n_models: int = 5,
         hidden: int = 256,
         n_layers: int = 2,
+        bottleneck: int | None = None,
     ) -> None:
         super().__init__()
         self.n_models = n_models
         self.state_dim = state_dim
         self.members = nn.ModuleList(
-            make_mlp(in_dim, 2 * state_dim, hidden=hidden, n_layers=n_layers)
+            make_mlp(
+                in_dim,
+                2 * state_dim,
+                hidden=hidden,
+                n_layers=n_layers,
+                bottleneck=bottleneck,
+            )
             for _ in range(n_models)
         )
 
@@ -96,6 +113,24 @@ class StateValue(nn.Module):
 
     def forward(self, obs: torch.Tensor) -> torch.Tensor:
         return self.net(obs).squeeze(-1)
+
+
+class CriticValue(nn.Module):
+    """State value ``V(s) = Q(s, mu(s))`` from a frozen actor and twin critic.
+
+    Supplies the value and its state gradient for the value-aware weights directly from
+    the (adequately trained) SAC critic, instead of a fresh TD(0) head fit on the same
+    offline batch, which is a lower-variance weight source for the WP1 estimators.
+    """
+
+    def __init__(self, actor: nn.Module, critic: nn.Module) -> None:
+        super().__init__()
+        self.actor = actor
+        self.critic = critic
+
+    def forward(self, obs: torch.Tensor) -> torch.Tensor:
+        act = self.actor.deterministic(obs)
+        return self.critic.q_min(obs, act)
 
 
 class SquashedGaussianActor(nn.Module):

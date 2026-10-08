@@ -90,6 +90,7 @@ def fit_dynamics(
     n_models: int = 5,
     hidden: int = 256,
     n_layers: int = 2,
+    bottleneck: int | None = None,
     epochs: int = 100,
     batch_size: int = 256,
     lr: float = 1e-3,
@@ -120,7 +121,12 @@ def fit_dynamics(
     device = torch.device(device)
 
     model = GaussianEnsemble(
-        in_dim=x.shape[1], state_dim=next_obs.shape[1], n_models=n_models, hidden=hidden, n_layers=n_layers
+        in_dim=x.shape[1],
+        state_dim=next_obs.shape[1],
+        n_models=n_models,
+        hidden=hidden,
+        n_layers=n_layers,
+        bottleneck=bottleneck,
     ).to(device)
     opt = torch.optim.Adam(model.parameters(), lr=lr)
 

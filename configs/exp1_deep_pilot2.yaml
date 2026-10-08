@@ -1,0 +1,43 @@
+seed: 0
+gamma: 0.99
+horizon: 8
+n_starts: 64
+n_seeds: 12
+loss_families: [mle, vaml1, vagram, calibrated]
+clip_sigma: 6.0
+
+run_main: false
+control_identical_loss: false
+ceiling_control: false
+
+pilot: true
+pilot_n_seeds: 12
+pilot_bottleneck_list: [none]
+pilot_d_d_list: [0, 10, 50]
+pilot_sigma_list: [0.0]
+pilot_reward_mode_list: [goal]
+pilot_on_policy: false
+pilot_value_source: sac
+
+goal_sigma: 0.5
+on_policy_burn: 20
+
+data_horizon: 100
+
+base_task: inverted_double_pendulum
+mujoco_eps: 1.0e-6
+mujoco_centered: true
+
+random_steps: 2000
+sac_steps: 2000
+sac_start_steps: 400
+sac_update_after: 400
+sac_update_every: 50
+sac_batch_size: 128
+
+hidden: 64
+n_layers: 2
+n_models: 3
+epochs: 30
+critic_epochs: 30
+batch_size: 256
