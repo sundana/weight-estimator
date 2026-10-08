@@ -5,7 +5,7 @@ per-WP folders so the documents, notes, and generated tables do not mix.
 
 | WP | Folder | Target venue | Paper |
 |---|---|---|---|
-| WP1+WP2 | `coval/` | ICML/ICLR | **Bundled**: objective-mismatch diagnostics (Part I) + COVAL coupled-stability theory and stabilized algorithm (Part II) |
+| WP1+WP2 | `coval/` | ICML/ICLR | **COVAL: Diagnostic Foundations and a Two-Timescale Stabilized Algorithm for Value-Aware Model-Based RL** — bundled: objective-mismatch diagnostics (Part I) + COVAL coupled-stability theory and stabilized algorithm (Part II) |
 | WP3 | `wp3/` | ICML/TMLR | Scaling, latent dynamics, and goal-conditioned generalization |
 | WP4 | `wp4/` | Dissertation / TMLR-JMLR-TPAMI | Synthesis, reproducibility package, dissertation |
 

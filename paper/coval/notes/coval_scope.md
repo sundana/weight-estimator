@@ -14,6 +14,14 @@ theory + stabilized algorithm (WP2).
 - **Motivation:** Part I shows value-aware weighting does not robustly beat MLE and that
   the binding constraint is the bias-variance of the estimated weight `w_hat`
   (`paper/coval/notes/theory.md`, Thm 1-2); COVAL bounds that estimator noise.
+- **Novelty boundary vs ROMBRL:** ROMBRL (Chen et al., ICML 2026; `chen2026rombri`)
+  already gives the first formal coupled-convergence result in MBRL (Stackelberg game +
+  two-timescale, `eta_model >> eta_policy`, model follower on the fast timescale) and
+  documents the equal-rate collapse (score `~3.3`). COVAL does **not** claim the first
+  MBRL coupled-convergence theory; it targets the coupling induced by the value-aware
+  weight estimator (`w_hat = w(V_hat, grad V_hat)`), a non-asymptotic constant-step-size
+  bound tied to `sigma_w^2`, and deliberately places the *critic* (weight provider) on the
+  faster timescale so the model's weighted objective is near-stationary.
 - **Status:** scaffold only. Sections `sec:coval`, `sec:coval-theory`, `sec:coval-alg`,
   `sec:coval-exp` in `main.tex` are placeholders; no theory proofs, no algorithm
   implementation, no `runs/` artifacts, no tables. `NotImplementedError` stubs in

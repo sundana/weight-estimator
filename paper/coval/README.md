@@ -1,4 +1,4 @@
-# COVAL — Objective-Mismatch Diagnostics & Stabilized Coupled Value-Aware Dynamics
+# COVAL — Diagnostic Foundations and a Two-Timescale Stabilized Algorithm for Value-Aware Model-Based RL
 
 This is the **bundled WP1+WP2 paper**: Part I is the objective-mismatch diagnostic suite
 (formerly the WP1 paper) and Part II is the COVAL theory + stabilized algorithm (formerly

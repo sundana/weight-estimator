@@ -20,6 +20,7 @@ retained for reference).
 1. Introduction — objective mismatch, value-aware learning, prior failure-mode diagnoses,
    the negative result, and the move to stabilization.
 2. Background & Related Work — Lambert; VAML/IterVAML; VaGraM; CVAML; ROMI; MOBILE;
+   ROMBRL (Chen et al., 2026; coupled Stackelberg/two-timescale, prior art for Part II);
    decision-aware taxonomy.
 3. Theory (Part I) — Lemma 1 (factorization), Theorem 1 (prediction risk), Theorem 2 (ESS),
    Theorem 3 (decision-risk crossover).
@@ -68,3 +69,5 @@ Part I statements and proofs: `paper/coval/notes/theory.md`. Part II (COVAL) sco
   are not installed; mbrl-lib pins old `gym` that conflicts with `gymnasium` 1.2.2.
 - Phase 2: instrument DreamerV3/TD-MPC2.
 - Distractor dynamics classes beyond the logistic map.
+- Reproduce/adapt the ROMBRL joint model/policy baseline (Stackelberg + two-timescale) for
+  the Part II / WP3 value-aware comparison.

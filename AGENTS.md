@@ -33,10 +33,11 @@ synthesis) are planned work.
   (`exp1_profiling`), plus `report.py`; Part II scaffold `exp2_coval_stability`
   (`NotImplementedError`). `configs/*.yaml` feed them (keep knobs in sync);
   `experiments/report.py` writes `paper/coval/tables/*.tex` from committed `runs/`
-- `paper/` — one folder per paper: `coval/` (ICML/ICLR bundled WP1+WP2 — Part I
-  diagnostics+profiling, Part II COVAL theory+algorithm; `main.tex`, `notes/`, `tables/`),
-  `wp3/` (scaling/latent/goal-conditioned), `wp4/` (dissertation); index in
-  `paper/README.md`, shared `paper/shared/{macros.tex,references.bib}`
+- `paper/` — one folder per paper: `coval/` (ICML/ICLR bundled WP1+WP2 — title
+  "COVAL: Diagnostic Foundations and a Two-Timescale Stabilized Algorithm for Value-Aware
+  Model-Based RL"; Part I diagnostics+profiling, Part II COVAL theory+algorithm;
+  `main.tex`, `notes/`, `tables/`), `wp3/` (scaling/latent/goal-conditioned), `wp4/`
+  (dissertation); index in `paper/README.md`, shared `paper/shared/{macros.tex,references.bib}`
 - `paper/coval/notes/theory.md` states Lemma 1, Theorems 1-3; `paper/coval/notes/wp1_report.md`
   records Part I results (H1.1/H1.2/H1.3); `paper/coval/notes/outline.md` — outline + open
   items; `paper/coval/notes/coval_scope.md` — Part II (COVAL) scope
