@@ -60,12 +60,6 @@ Part I statements and proofs: `paper/coval/notes/theory.md`. Part II (COVAL) sco
   (`h11_quality.tex`). Clip is non-binding (`h11_clip.tex`); the identical-loss and
   ceiling arms confirm determinism (`h11_control.tex`). Details in `wp1_report.md`.
 
-## Phase 1c results (continuous Distractor-Gym, exp4)
-
-**Withdrawn in the tabular revision.** Requires `torch`; the earlier projection loss was
-computed in mismatched raw vs standardized coordinates and must be fixed before re-running.
-
-
 ## Open items
 
 - Sharper decision-aware crossover statistic (replace SNR_w proxy).

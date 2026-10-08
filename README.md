@@ -42,8 +42,8 @@ Tests:
 $env:PYTHONPATH = "$PWD\src"; python -m pytest tests -q
 ```
 
-Experiments (`experiments/exp1_alignment.py`, `exp2_decomposition.py`,
-`exp3_benchmark.py`):
+Part I experiments (`experiments/exp1_alignment.py`, `exp1b_crossover.py`,
+`exp2_decomposition.py`, `exp5_phase.py`, `exp1_deep_alignment.py`, `exp1_profiling.py`):
 
 ```powershell
 python -m experiments.exp1_alignment --config configs/tabular_default.yaml
@@ -51,9 +51,8 @@ python -m experiments.exp1_alignment --config configs/tabular_default.yaml
 
 Configs in `configs/` feed the experiments (regime knobs, loss family, seeds); keep
 the knob names in sync between `configs/*.yaml` and `src/distractor_gym/core.py`
-(`RegimeConfig`). Deep-baseline runs (MBPO/VaGraM, then DreamerV3/TD-MPC2) are
-configured in `configs/phase1_mbpo_vagram.yaml` and require the optional `bench`
-dependencies.
+(`RegimeConfig`). Part II (COVAL) coupled-stability experiments are scaffolded in
+`experiments/exp2_coval_stability.py` (`NotImplementedError`) pending WP2.
 
 ## Status
 
@@ -68,11 +67,9 @@ versions) next to their results.
 The revised tabular results are in `runs/` (10 seeds each): `exp1`/`exp2` (uncapacitated
 ground-truth), `exp1_capacity`/`exp2_capacity` (capacity-limited + stochastic
 distractors), and `exp1b`/`exp1b_capacity` (crossover). Corrected theory and results are
-written up in `paper/coval/notes/archive/draft_v2.md` and `paper/coval/notes/theory.md`. The continuous neural
-experiment (Exp 4) needs `torch` (not installed) and is withdrawn pending a coordinate
-scaling fix. The deep-baseline benchmark (MBPO/VaGraM/DreamerV3/TD-MPC2, Phase 1c/2/3)
-needs `mbrl-lib` + `dm_control` provisioning and remains planned work
-(`NotImplementedError`).
+written up in `paper/coval/notes/archive/draft_v2.md` and `paper/coval/notes/theory.md`.
+The deep-baseline benchmark (MBPO/VaGraM/DreamerV3/TD-MPC2) needs `mbrl-lib` +
+`dm_control` provisioning and remains planned work (`NotImplementedError`).
 
 ### WP1+WP2 bundled (Part I complete, Part II scaffold)
 

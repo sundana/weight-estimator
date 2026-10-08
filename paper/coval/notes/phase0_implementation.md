@@ -51,7 +51,7 @@ Key decisions in the scaffold:
 - **Minimal core dependencies** (`pyproject.toml`): `numpy`, `scipy`, `pyyaml`,
   `gymnasium`. Optional extras keep the heavy stack out of the base install:
   - `dev` — `pytest`, `ruff`, `mypy`
-  - `deep` — `torch` (used by the continuous neural-model experiments, Exp 4)
+  - `deep` — `torch` (used by the deep Exp 1.1 alignment and Exp 1.2 profiling)
   - `bench` — `mbrl-lib` (deep baselines, Phase 1c/2; provisioning is an open item)
 - **Configs decoupled from code**: experiments read `configs/*.yaml` and keep the
   knob names in sync with `RegimeConfig` in `src/distractor_gym/core.py`.

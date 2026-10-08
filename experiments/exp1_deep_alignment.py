@@ -1,4 +1,4 @@
-"""Experiment 1.1 (deep): policy-gradient cosine alignment (WP1).
+"""Experiment 1.1 (deep): policy-gradient cosine alignment (Part I of paper/coval).
 
 Measures objective mismatch between the true environment and a learned model at the
 level of the policy gradient. ``g_true`` is the exact rollout gradient of a fixed
@@ -27,7 +27,6 @@ from distractor_gym.deep.mujoco_diff import (
     MujocoDistractorGym,
     rollout_return,
 )
-from distractor_gym.deep.nets import CriticValue
 from distractor_gym.deep.sac import collect_random, train_sac
 from distractor_gym.deep.trainer import fit_dynamics, fit_state_value, model_one_step_mse
 from distractor_gym.deep.vjp import state_value_grad_norm
@@ -102,102 +101,8 @@ def gradient_cosine(g_true: torch.Tensor, g_model: torch.Tensor) -> float:
     return float(torch.dot(g_true, g_model) / denom) if denom > 0.0 else 0.0
 
 
-def policy_return(env, actor, s0: torch.Tensor, horizon: int, gamma: float) -> float:
-    """Mean true-dynamics return of the deterministic policy (no gradient)."""
-    with torch.no_grad():
-        return float(rollout_return(env, actor, s0, horizon, gamma))
-
-
-def _actor_params(actor):
-    return [p for p in actor.parameters() if p.requires_grad]
-
-
-def _apply_flat_step(actor, flat: torch.Tensor, step: float) -> None:
-    """In-place parameter step ``theta <- theta + step * flat / ||flat||``."""
-    direction = flat / (float(flat.norm()) + 1e-12)
-    with torch.no_grad():
-        i = 0
-        for p in _actor_params(actor):
-            n = p.numel()
-            p.add_(step * direction[i : i + n].view_as(p))
-            i += n
-
-
-def _return_after_step(env, actor, s0, horizon, gamma, flat, step):
-    """True return after a fixed-norm step along ``flat``, restoring the actor."""
-    params = _actor_params(actor)
-    backup = [p.detach().clone() for p in params]
-    _apply_flat_step(actor, flat, step)
-    value = policy_return(env, actor, s0, horizon, gamma)
-    with torch.no_grad():
-        for p, b in zip(params, backup):
-            p.copy_(b)
-    return value
-
-
-def decision_relevance(
-    env,
-    actor,
-    s0: torch.Tensor,
-    horizon: int,
-    gamma: float,
-    g_true: torch.Tensor,
-    g_model: torch.Tensor,
-    step: float,
-    seed: int,
-) -> dict:
-    """Finite-step decision relevance of the model gradient.
-
-    A first-order probe (the directional derivative of the true return) is exactly the
-    cosine, so it cannot add information beyond ``gradient_cosine``. This instead takes a
-    fixed-norm parameter step along each direction and measures the *true* return change,
-    capturing curvature: ``d_true`` is the improvement from the exact gradient,
-    ``d_model`` the improvement from the model gradient, and ``d_rand`` the control from a
-    random direction. ``decision_ratio = d_model / d_true`` is the fraction of the true
-    gradient's improvement that the model gradient realises.
-    """
-    base = policy_return(env, actor, s0, horizon, gamma)
-    d_true = _return_after_step(env, actor, s0, horizon, gamma, g_true, step) - base
-    d_model = _return_after_step(env, actor, s0, horizon, gamma, g_model, step) - base
-    gen = torch.Generator().manual_seed(seed)
-    rand = torch.randn(g_true.shape, generator=gen, dtype=g_true.dtype)
-    d_rand = _return_after_step(env, actor, s0, horizon, gamma, rand, step) - base
-    return {
-        "ret_base": base,
-        "d_true": d_true,
-        "d_model": d_model,
-        "d_rand": d_rand,
-        "decision_ratio": d_model / d_true if abs(d_true) > 1e-9 else None,
-    }
-
-
-def _on_policy_states(env: MujocoDistractorEnv, actor, n: int, burn: int, generator) -> torch.Tensor:
-    """States visited by the current actor after a ``burn``-step rollout from random starts.
-
-    Evaluating the policy gradient at the policy's own state distribution (rather than
-    i.i.d. starts near the upright configuration) measures value-aware weighting where
-    the mismatch actually affects the policy update.
-    """
-    with torch.no_grad():
-        s = env.sample_states(n, generator=generator)
-        for _ in range(max(0, burn)):
-            s = env.step(s, actor.deterministic(s), noise=False)
-    return s.detach()
-
-
-def _prepare(
-    cfg: dict,
-    d_d: int,
-    sigma: float,
-    seed: int,
-    *,
-    reward_mode: str = "dense",
-    on_policy: bool = False,
-) -> dict:
+def _prepare(cfg: dict, d_d: int, sigma: float, seed: int) -> dict:
     """Train the shared SAC agent/replays and the rollout start states for one regime."""
-    if reward_mode is None:
-        reward_mode = cfg.get("reward_mode", "dense")
-    goal_sigma = cfg.get("goal_sigma", 0.25)
     torch.manual_seed(cfg.get("seed", 0) + seed)
     env = MujocoDistractorEnv(
         d_d=d_d,
@@ -206,8 +111,6 @@ def _prepare(
         base_task=cfg.get("base_task", "inverted_double_pendulum"),
         eps=cfg.get("mujoco_eps", 1e-6),
         centered=cfg.get("mujoco_centered", True),
-        reward_mode=reward_mode,
-        goal_sigma=goal_sigma,
     )
     gym_env = MujocoDistractorGym(
         d_d=d_d,
@@ -215,8 +118,6 @@ def _prepare(
         seed=seed,
         base_task=cfg.get("base_task", "inverted_double_pendulum"),
         horizon=cfg.get("data_horizon", cfg.get("horizon", 8)),
-        reward_mode=reward_mode,
-        goal_sigma=goal_sigma,
     )
     agent, medium = train_sac(
         gym_env,
@@ -231,16 +132,7 @@ def _prepare(
     )
     random_buf = collect_random(gym_env, n_steps=cfg.get("random_steps", 2000), seed=seed)
     gen = torch.Generator().manual_seed(seed + 999)
-    if on_policy:
-        s0 = _on_policy_states(
-            env,
-            agent.actor,
-            cfg.get("n_starts", 64),
-            cfg.get("on_policy_burn", 20),
-            gen,
-        )
-    else:
-        s0 = env.sample_states(cfg.get("n_starts", 64), generator=gen)
+    s0 = env.sample_states(cfg.get("n_starts", 64), generator=gen)
     return {
         "env": env,
         "actor": agent.actor,
@@ -266,16 +158,10 @@ def _row(
     g_true,
     g_model,
     one_step_mse,
-    *,
-    bottleneck=None,
-    reward_mode="dense",
-    on_policy=False,
-    value_source="td",
-    decision=None,
 ):
     true_norm = float(g_true.norm())
     model_norm = float(g_model.norm())
-    row = {
+    return {
         "seed": seed,
         "d_d": d_d,
         "sigma_dist": sigma,
@@ -289,25 +175,11 @@ def _row(
         "g_model_norm": model_norm,
         "grad_ratio": model_norm / true_norm if true_norm > 0.0 else None,
         "one_step_mse": one_step_mse,
-        "bottleneck": bottleneck,
-        "reward_mode": reward_mode,
-        "on_policy": on_policy,
-        "value_source": value_source,
     }
-    if decision:
-        row.update(decision)
-    return row
 
 
-def _value_fns(cfg: dict, prep: dict, data: dict, value_source: str, gamma: float, seed: int):
-    """Return ``(value_fn, grad_norm_fn)`` for the WP1 weights.
-
-    ``value_source='sac'`` uses the trained SAC critic ``V(s) = Q(s, mu(s))`` (lower
-    weight-estimator variance); ``'td'`` fits a fresh TD(0) state-value head as before.
-    """
-    if value_source == "sac":
-        cv = CriticValue(prep["agent"].actor, prep["agent"].critic).eval()
-        return (lambda o: cv(o)), (lambda o: state_value_grad_norm(cv, o))  # noqa: E731
+def _value_fns(cfg: dict, data: dict, gamma: float, seed: int):
+    """Return ``(value_fn, grad_norm_fn)`` for the fitted TD(0) state-value head."""
     sv = fit_state_value(
         data,
         hidden=cfg.get("hidden", 64),
@@ -329,19 +201,11 @@ def regime_rows(
     arm: str = "default",
     horizons: list[int] | None = None,
     clip_sigma: float | None = None,
-    *,
-    bottleneck: int | None = None,
-    reward_mode: str = "dense",
-    on_policy: bool = False,
-    value_source: str = "td",
-    decision: bool = False,
 ) -> list[dict]:
     horizons = horizons or [cfg.get("horizon", 8)]
     clip_sigma = cfg.get("clip_sigma", 6.0) if clip_sigma is None else clip_sigma
     gamma = cfg.get("gamma", 0.99)
-    use_decision = decision or cfg.get("decision_metric", False)
-    decision_step = cfg.get("decision_step", 0.05)
-    prep = _prepare(cfg, d_d, sigma, seed, reward_mode=reward_mode, on_policy=on_policy)
+    prep = _prepare(cfg, d_d, sigma, seed)
     env, actor, s0 = prep["env"], prep["actor"], prep["s0"]
     g_true = {h: policy_gradient(env, actor, s0, h, gamma) for h in horizons}
     if arm == "ceiling":
@@ -358,10 +222,6 @@ def regime_rows(
                 g_true[h],
                 g_true[h],
                 None,
-                bottleneck=bottleneck,
-                reward_mode=reward_mode,
-                on_policy=on_policy,
-                value_source=value_source,
             )
             for h in horizons
         ]
@@ -371,7 +231,7 @@ def regime_rows(
     ]
     rows = []
     for name, data in prep["datasets"].items():
-        vfn, gfn = _value_fns(cfg, prep, data, value_source, gamma, seed)
+        vfn, gfn = _value_fns(cfg, data, gamma, seed)
         for fam in families:
             fit_fam = LossFamily.MLE if force_mle else fam
             fd = fit_dynamics(
@@ -382,7 +242,6 @@ def regime_rows(
                 n_models=cfg.get("n_models", 3),
                 hidden=cfg.get("hidden", 64),
                 n_layers=cfg.get("n_layers", 2),
-                bottleneck=bottleneck,
                 epochs=cfg.get("epochs", 30),
                 batch_size=cfg.get("batch_size", 256),
                 seed=seed,
@@ -390,19 +249,6 @@ def regime_rows(
             mse = model_one_step_mse(fd, data)
             for h in horizons:
                 g_model = policy_gradient(env, actor, s0, h, gamma, fd=fd, clip_sigma=clip_sigma)
-                dec = None
-                if use_decision:
-                    dec = decision_relevance(
-                        env,
-                        actor,
-                        s0,
-                        h,
-                        gamma,
-                        g_true[h],
-                        g_model,
-                        decision_step,
-                        seed * 1000 + h,
-                    )
                 rows.append(
                     _row(
                         seed,
@@ -416,11 +262,6 @@ def regime_rows(
                         g_true[h],
                         g_model,
                         mse,
-                        bottleneck=bottleneck,
-                        reward_mode=reward_mode,
-                        on_policy=on_policy,
-                        value_source=value_source,
-                        decision=dec,
                     )
                 )
     return rows
@@ -493,41 +334,6 @@ def run(cfg: dict, out_dir: str) -> dict:
         ok = all(abs(r["cos"] - 1.0) < 1e-6 for r in ceiling)
         print(f"[exp1_deep] ceiling cos==1 check: {ok}", flush=True)
 
-    pilot = []
-    if cfg.get("pilot", False):
-        pilot_seeds = seeds[: cfg.get("pilot_n_seeds", 5)]
-        reward_modes = cfg.get(
-            "pilot_reward_mode_list", [cfg.get("pilot_reward_mode", "goal")]
-        )
-        for reward_mode in reward_modes:
-            for bottleneck in cfg.get("pilot_bottleneck_list", [16]):
-                for d_d in cfg.get("pilot_d_d_list", [0, 50]):
-                    for sigma in cfg.get("pilot_sigma_list", [0.0]):
-                        for seed in pilot_seeds:
-                            print(
-                                f"[exp1_deep] pilot reward={reward_mode} "
-                                f"bottleneck={bottleneck} d_d={d_d} sigma={sigma} seed={seed}",
-                                flush=True,
-                            )
-                            pilot.extend(
-                                regime_rows(
-                                    cfg,
-                                    d_d,
-                                    sigma,
-                                    seed,
-                                    arm="pilot",
-                                    bottleneck=(
-                                        None
-                                        if bottleneck in (None, "none", 0)
-                                        else int(bottleneck)
-                                    ),
-                                    reward_mode=reward_mode,
-                                    on_policy=cfg.get("pilot_on_policy", True),
-                                    value_source=cfg.get("pilot_value_source", "sac"),
-                                )
-                            )
-        save_json(pilot, out_dir, "alignment_pilot")
-
     if rows:
         _plot(rows, out_dir)
     return {
@@ -536,7 +342,6 @@ def run(cfg: dict, out_dir: str) -> dict:
         "horizon": horizon,
         "clip": clip,
         "ceiling": ceiling,
-        "pilot": pilot,
         "out_dir": out_dir,
     }
 

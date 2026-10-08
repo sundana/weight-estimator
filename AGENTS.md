@@ -28,8 +28,10 @@ synthesis) are planned work.
 - `src/distractor_gym/deep/` — torch model-learning stack (nets, VJP, offline training)
   for the WP1 deep diagnostics; imports torch lazily
 - `src/distractor_gym/profiling/` — per-sample VJP hardware profiling harness (WP1 Exp 1.2)
-- `experiments/` — tabular (exp1/1b/2/3/5), deep (`exp1_deep_alignment`), and profiling
-  (`exp1_profiling`) entry points; `configs/*.yaml` feed them (keep knobs in sync);
+- `experiments/` — Part I entry points: tabular (`exp1_alignment`, `exp1b_crossover`,
+  `exp2_decomposition`, `exp5_phase`), deep (`exp1_deep_alignment`), and profiling
+  (`exp1_profiling`), plus `report.py`; Part II scaffold `exp2_coval_stability`
+  (`NotImplementedError`). `configs/*.yaml` feed them (keep knobs in sync);
   `experiments/report.py` writes `paper/coval/tables/*.tex` from committed `runs/`
 - `paper/` — one folder per paper: `coval/` (ICML/ICLR bundled WP1+WP2 — Part I
   diagnostics+profiling, Part II COVAL theory+algorithm; `main.tex`, `notes/`, `tables/`),
@@ -49,8 +51,7 @@ synthesis) are planned work.
   `stats` (`rliable`), `bench` (mbrl-lib — pins old `gym`, provisioning open).
 - WP1 profiling runs on the local RTX 5060 Ti (16GB); the plan's A100/4090 absolute
   numbers are reported as relative overhead ratios, not reproduced exactly.
-- `exp4_continuous` needs torch; the WP3 deep benchmark needs `mbrl-lib` + `dm_control`,
-  which are not installed.
+- The WP3 deep benchmark needs `mbrl-lib` + `dm_control`, which are not installed.
 - Docstrings state the math/API contract; no inline comments in source.
 
 ## Commits

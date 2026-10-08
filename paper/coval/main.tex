@@ -87,9 +87,7 @@ Lyapunov-stabilized coupled model/critic algorithm whose theory and experiments
 diagnostic paper with the WP2 COVAL paper and supersedes the tabular-only Draft~v2. All
 Part~I numbers are produced by the committed runs under \texttt{runs/} (each with a
 \texttt{manifest.json} pinning the config, git SHA, and library versions); Part~I is
-summarised in \texttt{paper/coval/notes/wp1\_report.md}. The continuous neural transfer
-(Exp~4) is superseded by the MuJoCo Exp~1.1 of Sec.~\ref{sec:exp11-deep}; its earlier
-numbers remain withdrawn.}
+summarised in \texttt{paper/coval/notes/wp1\_report.md}.}
 \end{abstract}
 
 \section{Introduction}
@@ -571,14 +569,6 @@ Learning-rate ratio, Polyak target, normalization, clipping, and spectral normal
 ablations, with Lyapunov/Jacobian logging on Distractor-Gym and MuJoCo. \emph{Results
 pending.}
 
-\section{Experiment 4: Continuous Neural Transfer (superseded)}
-
-\textbf{Superseded by Exp~1.1 (Sec.~\ref{sec:exp11-deep}).} The earlier continuous
-neural transfer used reward gradients as a value proxy and a projection loss computed in
-mismatched raw vs.\ standardized coordinates. \texttt{torch} is now installed, and the
-MuJoCo Exp~1.1 provides the corrected deep diagnostic; the original Exp~4 numbers
-remain withdrawn.
-
 \section{Discussion}
 
 \textbf{When MLE fails to guide the policy.} Under goal-concentrated coverage with an
@@ -631,9 +621,8 @@ value-aware weighting is not helping; the model is in the MLE-optimal regime.
   $\tau$ remains open work.
 \item The phase diagram (Fig.~\ref{fig:phase}) has some seed-sensitive cells at larger
   capacity; more seeds and a finer capacity sweep are needed to tighten it.
-\item The tabular results are stylized. The continuous transfer (Exp~4) is superseded by
-  the MuJoCo Exp~1.1; the original raw vs.\ standardized coordinate bug is removed by
-  construction, and the earlier Exp~4 numbers stay withdrawn.
+\item The tabular results are stylized, with the MuJoCo Exp~1.1 as the continuous
+  counterpart.
 \item The Exp~1.1 deep diagnostic measures policy-gradient \emph{alignment}, not policy
   \emph{return}; the H1.1 return claim needs the full model-based training loop.
 \item The Exp~1.2 profiling runs on a local RTX~5060~Ti, not the plan's A100/4090, so it
