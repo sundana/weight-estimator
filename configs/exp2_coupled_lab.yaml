@@ -1,0 +1,30 @@
+# Phase A: tabular coupled model/critic lab (Part II of paper/coval).
+# Non-stationary two-timescale system in src/distractor_gym/coupled.py; the reported
+# learning-rate ratio is alpha_model / alpha_critic. Entry point: experiments/exp2_coupled_lab.py.
+
+gamma: 0.99
+n_seeds: 5
+n_data: 1000
+bandwidth: 0.5
+n_steps: 300
+alpha_critic: 0.05
+polyak_tau: 1.0
+self_norm: true
+noise_inflation_factor: 1.25
+stability_tol: 1.0e-3
+
+# A1: stability boundary kappa over alpha_model (and its ratio to alpha_critic), per family.
+alpha_model_levels: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.0, 5.0, 10.0, 25.0, 50.0]
+weight_kinds: [mle, vaml1, vagram]
+
+# A2: boundary kappa as a function of the weight-estimator noise sigma_w.
+weight_noise_levels: [0.0, 0.05, 0.1, 0.2, 0.3, 0.5]
+noise_weight_kind: vaml1
+
+regime:
+  d_c: 1
+  d_d: 0
+  distractor_class: nonlinear
+  reward_sparsity: 1.0
+  transition_noise: 0.1
+  seed: 0

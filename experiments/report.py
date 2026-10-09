@@ -402,6 +402,77 @@ def h13_overhead_table(rows: list[dict], h13: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
+def _g(value) -> str:
+    return "--" if value is None else f"{value:g}"
+
+
+def _e(value) -> str:
+    return "--" if value is None else f"{value:.2e}"
+
+
+def coupled_lab_table(lab: dict) -> str:
+    kappa_a = lab.get("kappa_a", {})
+    lines = [
+        r"\begin{table}[htbp]",
+        r"\centering",
+        r"\caption{Phase~A tabular coupled lab: linear-stability boundary $\kappa$"
+        r" ($\alpha_{model}$) of the coupled model/critic system per weight family."
+        r" Self-normalized value-aware weights lower the boundary relative to MLE.}",
+        r"\label{tab:h20}",
+        r"\begin{tabular}{lc}",
+        r"\toprule",
+        r"weight family & $\kappa$ ($\alpha_{model}$) \\",
+        r"\midrule",
+    ]
+    for fam in ("mle", "vaml1", "vagram"):
+        lines.append(f"{fam} & {_g(kappa_a.get(fam))} \\\\")
+    lines += [r"\bottomrule", r"\end{tabular}", r"\end{table}"]
+    return "\n".join(lines) + "\n"
+
+
+def coval_stability_table(stability: dict) -> str:
+    e21 = stability["exp21"]
+    e22 = stability["exp22"]["rows"]
+    e23 = stability["exp23"]["rows"]
+    e24 = stability["exp24"]["rows"]
+    e25 = stability["exp25"]["rows"]
+    best22 = min(e22, key=lambda r: r["tracking_error_final"])
+    norm = {r["normalization"]: r["weight_var_mean"] for r in e23}
+    clip_none = next(r for r in e24 if r["clip_median_ratio"] is None)
+    clip_tight = min(
+        (r for r in e24 if r["clip_median_ratio"] is not None),
+        key=lambda r: r["clip_median_ratio"],
+    )
+    lip_off = next(r["critic_lip_final"] for r in e25 if not r["spectral_norm"])
+    lip_on = next(r["critic_lip_final"] for r in e25 if r["spectral_norm"])
+    lines = [
+        r"\begin{table}[htbp]",
+        r"\centering",
+        r"\caption{EXP~2.1--2.5 stabilization ablations on the tabular coupled lab"
+        r" (one factor at a time around the baseline operating point; $5$ seeds).}",
+        r"\label{tab:h21}",
+        r"\begin{tabular}{lll}",
+        r"\toprule",
+        r"Factor & Setting & Result \\",
+        r"\midrule",
+        f"LR ratio & $\\kappa$ & {_g(e21['kappa_ratio'])} \\\\",
+        f"Polyak $\\tau$ & best & {_g(best22['polyak_tau'])}"
+        f" (te {best22['tracking_error_final']:.3f}) \\\\",
+        r"Normalization & $\mathrm{Var}(\bar w)$ & none "
+        f"{_e(norm.get('none'))}, min-max {_e(norm.get('min_max'))}, "
+        f"self {_e(norm.get('batch_self'))} \\\\",
+        r"Clipping & $\|\nabla L\|$ (none $\to$ tightest) & "
+        f"{clip_none['g_theta_norm_final']:.2e} $\\to$ "
+        f"{clip_tight['g_theta_norm_final']:.2e} \\\\",
+        r"Spectral & $\|V_\phi\|_{Lip}$ (off $\to$ on) & "
+        f"{lip_off:.2f} $\\to$ {lip_on:.2f} \\\\",
+        r"\bottomrule",
+        r"\end{tabular}",
+        r"\end{table}",
+    ]
+    return "\n".join(lines) + "\n"
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--runs", default="runs")
@@ -450,6 +521,15 @@ def main(argv=None) -> int:
         added += 1
     except FileNotFoundError:
         pass
+    for name, source, builder in [
+        ("h20_coupled.tex", f"{args.runs}/exp2_coupled_lab/coupled_lab.json", coupled_lab_table),
+        ("h21_stability.tex", f"{args.runs}/exp2_coval_stability/stability.json", coval_stability_table),
+    ]:
+        try:
+            (out / name).write_text(builder(_read(source)), encoding="utf-8")
+            added += 1
+        except FileNotFoundError:
+            pass
     print(f"wrote {3 + added} tables to {out}")
     return 0
 

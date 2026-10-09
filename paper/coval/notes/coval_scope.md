@@ -22,7 +22,20 @@ theory + stabilized algorithm (WP2).
   weight estimator (`w_hat = w(V_hat, grad V_hat)`), a non-asymptotic constant-step-size
   bound tied to `sigma_w^2`, and deliberately places the *critic* (weight provider) on the
   faster timescale so the model's weighted objective is near-stationary.
-- **Status:** scaffold only. Sections `sec:coval`, `sec:coval-theory`, `sec:coval-alg`,
-  `sec:coval-exp` in `main.tex` are placeholders; no theory proofs, no algorithm
-  implementation, no `runs/` artifacts, no tables. `NotImplementedError` stubs in
-  `src/` mark the stabilization primitives.
+- **Status:** partial implementation. The stabilization primitives and the experimental
+  harness now exist, but the theory proofs and the full-grid results do not:
+  - Phase A (tabular coupled lab): `src/distractor_gym/coupled.py`,
+    `experiments/exp2_coupled_lab.py`, `configs/exp2_coupled_lab.yaml` — stability
+    boundary `kappa` per weight family and `kappa*(sigma_w)`; smoke run in
+    `runs/exp2_coupled_lab/`; table `paper/coval/tables/h20_coupled.tex`.
+  - Phase B (EXP 2.1-2.5 ablations): `experiments/exp2_coval_stability.py`,
+    `configs/exp2_coval_stability.yaml` — LR ratio, Polyak target, normalization,
+    clipping, spectral/Lipschitz; smoke run in `runs/exp2_coval_stability/`; table
+    `paper/coval/tables/h21_stability.tex`.
+  - Phase C (deep online loop): `src/distractor_gym/deep/coupled_loop.py`,
+    `experiments/exp2_coval_loop.py`, `configs/exp2_coval_loop.yaml` — smoke run in
+    `runs/exp2_coval_loop/` (return-level harness; noisy at smoke scale).
+  - Still open: the non-asymptotic tracking-error/Lyapunov proofs, the full-grid deep
+    runs (more iterations/seeds) needed for the return-level H1.1 and COVAL-vs-MLE
+    claims, and the `\input` of the tables into `main.tex` Part II.
+

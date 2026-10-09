@@ -1,24 +1,44 @@
 # COVAL (paper/coval Part II) coupled-stability experiments EXP 2.1-2.5.
-# Scaffold: experiments/exp2_coval_stability.py raises NotImplementedError until Part II.
+# Builds on the tabular coupled model/critic lab in src/distractor_gym/coupled.py.
+# Entry point: experiments/exp2_coval_stability.py.
 
 gamma: 0.99
-n_seeds: 10
+n_seeds: 5
+n_data: 1000
+bandwidth: 0.5
+n_steps: 300
+alpha_critic: 0.05
+stability_tol: 1.0e-3
 
-exp21_lr_ratio: [1.0e-3, 1.0e-2, 1.0e-1, 1.0, 10.0, 100.0]
+# Baseline operating point held fixed while each factor is swept.
+baseline:
+  weight_kind: vaml1
+  alpha_ratio: 5.0
+  polyak_tau: 1.0
+  normalization: batch_self
+  clip_median_ratio: null
+  spectral_norm: false
+  lip_target: 0.5
+
+# EXP 2.1 learning-rate ratio alpha_model / alpha_critic.
+exp21_lr_ratio: [0.01, 0.05, 0.1, 0.25, 0.5, 1.0, 2.0, 5.0, 10.0, 25.0, 50.0, 100.0, 200.0, 400.0]
+
+# EXP 2.2 target-network Polyak tau (1.0 = no target).
 exp22_polyak_tau: [1.0, 0.1, 0.01, 0.005, 0.001]
-exp23_normalization: [none, min_max, batch_self]
-exp24_clip_wmax: [null, 10.0, 5.0, 2.0]
-exp25_spectral_norm: [false, true]
 
-model_kind: feature
-capacity: 2
-model_noise: 0.5
-tau: 0.5
+# EXP 2.3 weight normalization.
+exp23_normalization: [none, min_max, batch_self]
+
+# EXP 2.4 weight clipping at a multiple of the batch-median weight.
+exp24_clip_median_ratio: [null, 10.0, 5.0, 2.0]
+
+# EXP 2.5 critic spectral (Lipschitz) normalization.
+exp25_spectral: [false, true]
 
 regime:
   d_c: 1
-  d_d: 2
-  distractor_class: stochastic
+  d_d: 0
+  distractor_class: nonlinear
   reward_sparsity: 1.0
   transition_noise: 0.1
   seed: 0

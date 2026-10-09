@@ -1,0 +1,46 @@
+# Phase C: deep online coupled MBRL loop (Part II of paper/coval).
+# Entry point: experiments/exp2_coval_loop.py (distractor_gym.deep.coupled_loop).
+# Tuned so the MLE policy return converges (short model rollouts are essential: the
+# horizon-5 rollout collapses the policy, horizon-1/2 is stable and learns).
+
+seed: 0
+n_seeds: 3
+d_d_list: [0, 50]
+sigma_dist_list: [0.0]
+families: [mle, vagram, coval]
+
+gamma: 0.99
+horizon: 1
+iterations: 30
+model_updates: 300
+agent_updates: 500
+batch_size: 256
+model_lr: 1.0e-3
+agent_lr: 3.0e-4
+n_models: 3
+hidden: 128
+n_layers: 2
+clip_sigma: 6.0
+
+init_steps: 2000
+collect_steps: 250
+rollouts_per_iter: 1
+rollout_batch: 256
+eval_every: 3
+eval_episodes: 5
+
+base_task: inverted_double_pendulum
+data_horizon: 100
+reward_mode: dense
+goal_sigma: 0.25
+mujoco_eps: 1.0e-6
+mujoco_centered: true
+
+# Per-family stabilization overrides (COVAL = VaGraM weights + stabilizers).
+vagram:
+  self_norm: false
+coval:
+  target_critic: true
+  self_norm: true
+  clip_wmax: 5.0
+  anneal_steps: 300

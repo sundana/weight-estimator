@@ -1,0 +1,16 @@
+\begin{table}[htbp]
+\centering
+\caption{EXP~2.1--2.5 stabilization ablations on the tabular coupled lab (one factor at a time around the baseline operating point; $5$ seeds).}
+\label{tab:h21}
+\begin{tabular}{lll}
+\toprule
+Factor & Setting & Result \\
+\midrule
+LR ratio & $\kappa$ & 200 \\
+Polyak $\tau$ & best & 0.001 (te 0.018) \\
+Normalization & $\mathrm{Var}(\bar w)$ & none 8.50e-03, min-max 4.26e-02, self 1.62e+00 \\
+Clipping & $\|\nabla L\|$ (none $\to$ tightest) & 4.24e-03 $\to$ 1.47e-03 \\
+Spectral & $\|V_\phi\|_{Lip}$ (off $\to$ on) & 0.85 $\to$ 0.50 \\
+\bottomrule
+\end{tabular}
+\end{table}

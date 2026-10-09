@@ -120,6 +120,30 @@ def save_fig(fig, out_dir: str, name: str) -> Path:
     return path
 
 
+def safe_mean(values) -> float:
+    """Mean of the finite entries, or NaN when none are finite (diverged runs)."""
+    arr = np.asarray(values, dtype=float)
+    finite = arr[np.isfinite(arr)]
+    return float(finite.mean()) if finite.size else float("nan")
+
+
+def safe_std(values) -> float:
+    """Std of the finite entries, or NaN when fewer than two are finite."""
+    arr = np.asarray(values, dtype=float)
+    finite = arr[np.isfinite(arr)]
+    return float(finite.std()) if finite.size >= 2 else float("nan")
+
+
+def uniform_transition_data(env: TabularDistractorEnv, n_data: int, seed: int) -> np.ndarray:
+    """i.i.d. uniform-coverage ``(n, 3)`` transition batch for the coupled labs."""
+    from distractor_gym.agents import sample_transitions
+
+    rng = np.random.default_rng(seed)
+    behavior = coverage_behavior(env, "uniform")
+    state_probs = coverage_state_probs(env, "uniform")
+    return sample_transitions(env, n_data, behavior, rng, state_probs=state_probs)
+
+
 def coverage_behavior(env: TabularDistractorEnv, coverage: str, gain: float = 1.5) -> np.ndarray:
     """Behavior policy for data collection: uniform or goal-directed coverage."""
     if coverage == "uniform":
